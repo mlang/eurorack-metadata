@@ -18,8 +18,8 @@ foobarion =
       , SubMix
       , A132_3, ErbeVerb, DLD, Mixer, A138s, Outs ] ]
   , [ [A180_2, QCD, QCDExp, A166, M303, Grids, BIA, SD808, Branches
-      , Hats808, RS808, CP909, A138b, One, A100_bl4, SubMix, A156, A162, A124]
-    , [Autobot, Robokop, A182_1, ErbeVerb, A100_bl42 ] ]
+      , Hats808, RS808, CP909, A138b, One, A100_bl42, A100_bl4, A100_bl2, A162]
+    , [Autobot, Robokop, A182_1, A100_bl8, A100_bl8, A100_bl4, A100_bl42 ] ]
   ]
 
 main :: IO ()
