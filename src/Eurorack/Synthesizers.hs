@@ -896,15 +896,20 @@ CV                     Mode
     CV-Att  Gate-PW
 Inv                    Div/Mult-Att
 |] []
-frontPanel SubMix = ASCIILayoutDiagram [r|
-A1 A2 A3   A1 A2 A3 A
-                    AB
-B1 B2 B3   B1 B2 B3 B
-                    All
-C1 C2 C3   C1 C2 C3 C
-                    CD
-D1 D2 D3   D1 D2 D3 D
-|] []
+frontPanel SubMix = let row c = map (\n -> Just (c <> pack (show n), Rotary)) [1..3]
+                             <> [Nothing]
+			     <> map (\n -> Just (c <> pack (show n), Socket In mini)) [1..3]
+			     <> [Just (c, Socket Out mini)]
+                        mix x = replicate 7 Nothing <> [Just (x, Socket Out mini)]
+	            in Tabular [
+    row "A"
+  , mix "AB"
+  , row "B"
+  , mix "All"
+  , row "C"
+  , mix "CD"
+  , row "D"
+  ]
 frontPanel DPO = UnknownPanel
 frontPanel ErbeVerb = ASCIILayoutDiagram [r|
  In    In    Mix      Dry/Wet        LOut
