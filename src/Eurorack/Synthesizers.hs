@@ -772,7 +772,26 @@ frontPanel A151 = Tabular [
   , [Just ("", LED), Just ("I/O4", Socket InOrOut mini)]
   , [Nothing, Just ("Steps", Switch [])]
   ]
-frontPanel A152 = UnknownPanel
+frontPanel A152 = ASCIILayoutDiagram [r|
+          SWI/O  THOuts  Dig.Outs
+	  1      1       1
+Addr
+          2      2       2
+
+          3      3       3
+ CV
+          4      4       4
+
+ CVIn     5      5       5
+ ClockIn
+ ResetIn  6      6       6
+
+          7      7       7
+
+          8      8       8
+
+          SWI/O  THOut
+|] []
 frontPanel A156 = ASCIILayoutDiagram [r|
 CV.In    CV.Out
 Trig.In  Trig.Out
