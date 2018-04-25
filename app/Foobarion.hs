@@ -10,9 +10,9 @@ a100lc9 = [ [A110_1, A110_1, A114, A115, A116, A138b, A120, A106_6, A131, A130]
 foobarion :: System
 foobarion =
   [ [ [ A180_2, A100_bl8, A143_9, A110_1, A138b, A111_4, VScale, A143_2
-      , A115, A184_1, A110_1, ComplexOscillator, A180_3, A143_2]
+      , A115, A184_1, A110_1, CO, A180_3, A143_2]
     , [ A190_4, A180_3, A151, A152, A132_3
-      , A101_2, A106_6, A116, A120, A124, A136, Evolution, AmplitudeToneController
+      , A101_2, A106_6, A116, A120, A124, A136, Evolution, ATC
       , A132_3, A180_3, A160_5, A156, A185_2, A100_bl8, A100_bl4 ]
     , [ A119, A100_bl2, A160, A161, A118, A145, A146, Maths, A132_3
       , SubMix

@@ -53,7 +53,7 @@ data Module = Autobot | M303 | Robokop
             | Mixer | Outs
             | Evolution
             | CP909 | Hats808 | One | RS808 | SD808
-            | ComplexOscillator | AmplitudeToneController
+            | CO | ATC
             | PerformanceMixer
             deriving (Bounded, Enum, Eq, Read, Show)
 
@@ -126,8 +126,8 @@ identifier Hats808 = pack "Hats808"
 identifier One = pack "One"
 identifier RS808 = pack "RS808"
 identifier SD808 = pack "SD808"
-identifier ComplexOscillator = pack "CO"
-identifier AmplitudeToneController = pack "AmpTone"
+identifier CO = pack "CO"
+identifier ATC = pack "ATC"
 identifier PerformanceMixer = "PerformanceMixer"
 
 name Autobot = pack "Autobot"
@@ -199,8 +199,8 @@ name Hats808 = pack "Hats808"
 name One = pack "One"
 name RS808 = pack "RS808"
 name SD808 = pack "SD808"
-name ComplexOscillator = pack "Complex Oscillator"
-name AmplitudeToneController = pack "Amplitude & Tone Controller"
+name CO = pack "Complex Oscillator"
+name ATC = pack "Amplitude & Tone Controller"
 name PerformanceMixer = pack "Performance Mixer"
 
 data Manufacturer = AcidLab
@@ -287,8 +287,8 @@ manufacturer Hats808 = TipTopAudio
 manufacturer One = TipTopAudio
 manufacturer RS808 = TipTopAudio
 manufacturer SD808 = TipTopAudio
-manufacturer ComplexOscillator = VerbosElectronics
-manufacturer AmplitudeToneController = VerbosElectronics
+manufacturer CO = VerbosElectronics
+manufacturer ATC = VerbosElectronics
 manufacturer PerformanceMixer = WMD
 
 description :: Module -> Text
@@ -371,8 +371,8 @@ width Hats808 = 8 % HorizontalPitch
 width One = 4 % HorizontalPitch
 width RS808 = 4 % HorizontalPitch
 width SD808 = 4 % HorizontalPitch
-width ComplexOscillator = 32 % HorizontalPitch
-width AmplitudeToneController = 16 % HorizontalPitch
+width CO = 32 % HorizontalPitch
+width ATC = 16 % HorizontalPitch
 width PerformanceMixer = 40 % HorizontalPitch
 
 height :: Module -> Length
@@ -455,8 +455,8 @@ currents Hats808 = Currents (mA 30) (mA 25) (mA 0)
 currents One = Currents (mA 80) (mA 8) (mA 0)
 currents RS808 = Currents (mA 14) (mA 13) (mA 0)
 currents SD808 = Currents (mA 18) (mA 16) (mA 0)
-currents ComplexOscillator = Currents (mA 70) (mA 50) (mA 0)
-currents AmplitudeToneController = Currents (mA 30) (mA 20) (mA 0)
+currents CO = Currents (mA 70) (mA 50) (mA 0)
+currents ATC = Currents (mA 30) (mA 20) (mA 0)
 currents PerformanceMixer = Currents (mA 450) (mA 430) (mA 0)
 
 powerOfCurrents :: Currents -> Power
@@ -774,7 +774,7 @@ frontPanel A151 = Tabular [
   ]
 frontPanel A152 = ASCIILayoutDiagram [r|
           SWI/O  THOuts  Dig.Outs
-	  1      1       1
+          1      1       1
 Addr
           2      2       2
 
@@ -865,7 +865,16 @@ frontPanel A180_2 = UnknownPanel
 frontPanel A180_3 = UnknownPanel
 frontPanel A182_1 = UnknownPanel
 frontPanel A184_1 = UnknownPanel
-frontPanel A185_2 = UnknownPanel
+frontPanel A185_2 = ASCIILayoutDiagram [r|
+  Lev.1
+1     -/0/+
+2     -/0/+
+3     -/0/+
+4     -/0/+
+o1    o2
+inv   o3
+|] []
+--0..10 (5)
 frontPanel A190_4 = ASCIILayoutDiagram [r|
      *FettesLCDDisplay*
 </-     >/+     Back    Enter
@@ -917,10 +926,10 @@ Inv                    Div/Mult-Att
 |] []
 frontPanel SubMix = let row c = map (\n -> Just (c <> pack (show n), Rotary)) [1..3]
                              <> [Nothing]
-			     <> map (\n -> Just (c <> pack (show n), Socket In mini)) [1..3]
-			     <> [Just (c, Socket Out mini)]
+                             <> map (\n -> Just (c <> pack (show n), Socket In mini)) [1..3]
+                             <> [Just (c, Socket Out mini)]
                         mix x = replicate 7 Nothing <> [Just (x, Socket Out mini)]
-	            in Tabular [
+                    in Tabular [
     row "A"
   , mix "AB"
   , row "B"
@@ -1044,7 +1053,7 @@ frontPanel SD808 = Tabular $ map (map Just) [
   , [("Gate-In", Socket In mini)]
   , [("SD-Out", Socket Out mini)]
   ]
-frontPanel ComplexOscillator = ASCIILayoutDiagram [r|
+frontPanel CO = ASCIILayoutDiagram [r|
 , t sq s  sync   t sq s out
           am/fm           e/o  av
       f   t/sq/s       f       cv
@@ -1053,7 +1062,7 @@ frontPanel ComplexOscillator = ASCIILayoutDiagram [r|
  fm cv      i   fm cv     tmbr av
  fm cv 1v   i   fm cv 1v       cv
 |] []
-frontPanel AmplitudeToneController = ASCIILayoutDiagram [r|
+frontPanel ATC = ASCIILayoutDiagram [r|
 Gain
 Cutoff       Amp
 Resonance
@@ -1061,6 +1070,79 @@ Resonance
 In  FreqCV  ExpCV  LinCV  Out
 |] []
 frontPanel PerformanceMixer = UnknownPanel
+
+url Autobot = Nothing
+url M303 = Nothing
+url Robokop = Nothing
+url VScale = Just "http://www.ajhsynth.com/V-Scale.html"
+url A100_bl2 = Nothing
+url A100_bl4 = Nothing
+url A100_bl8 = Nothing
+url A100_bl42 = Nothing
+url A101_2 = Just "http://www.doepfer.de/a1012.htm"
+url A103 = Nothing
+url A106_6 = Nothing
+url A110_1 = Nothing
+url A111_4 = Nothing
+url A114 = Nothing
+url A115 = Nothing
+url A116 = Nothing
+url A118 = Nothing
+url A119 = Nothing
+url A120 = Nothing
+url A124 = Nothing
+url A130 = Nothing
+url A131 = Nothing
+url A132_3 = Nothing
+url A136 = Nothing
+url A138a = Nothing
+url A138b = Nothing
+url A138m = Nothing
+url A138s = Nothing
+url A140 = Nothing
+url A143_2 = Nothing
+url A143_9 = Nothing
+url A145 = Nothing
+url A146 = Nothing
+url A148 = Nothing
+url A151 = Nothing
+url A152 = Nothing
+url A156 = Nothing
+url A160 = Nothing
+url A160_5 = Nothing
+url A161 = Nothing
+url A162 = Nothing
+url A166 = Nothing
+url A170 = Nothing
+url A180_1 = Nothing
+url A180_2 = Nothing
+url A180_3 = Nothing
+url A182_1 = Nothing
+url A184_1 = Nothing
+url A185_2 = Just "http://www.doepfer.de/a1852.htm"
+url A190_4 = Nothing
+url DLD = Nothing
+url QCD = Nothing
+url QCDExp = Nothing
+url SubMix = Nothing
+url DPO = Nothing
+url ErbeVerb = Nothing
+url Maths = Nothing
+url STO = Nothing
+url Branches = Nothing
+url Grids = Nothing
+url BIA = Nothing
+url Mixer = Nothing
+url Outs = Nothing
+url Evolution = Nothing
+url CP909 = Nothing
+url Hats808 = Nothing
+url One = Nothing
+url RS808 = Nothing
+url SD808 = Nothing
+url CO = Just "http://www.verboselectronics.com/modules/"
+url ATC = Just "http://www.verboselectronics.com/modules/"
+url PerformanceMixer = Just "https://wmdevices.com/products/performance-mixer"
 
 type Row = [Module]
 type Case = [Row]
@@ -1081,7 +1163,7 @@ showCaseSize x = let w = caseWidth x
                  in show (round (w # HorizontalPitch)) ++ " " ++
                     show HorizontalPitch ++ " × " ++
                     show (round (h # RackUnit)) ++ " " ++
-                    show RackUnit ++ " (" ++ (w `showIn` centi Meter) ++ ")"
+                    show RackUnit
 
 fullName :: Module -> Html ()
 fullName m = toHtml $ manufacturerName (manufacturer m) <> pack " " <> name m
@@ -1109,6 +1191,11 @@ moduleHtml m = doctypehtml_ $ do
       dd_ $ toHtml $ currents m
       dt_ "Manufacturer"
       dd_ $ manufacturerLink $ manufacturer m
+      case url m of
+        Just u -> do
+          dt_ "Web"
+          dd_ $ a_ [href_ $ pack u] (toHtml u)
+        _ -> pure ()
     h2_ "Front panel"
     panelHtml $ frontPanel m
     when (hasSwitchPositionLabels m) $ do
@@ -1142,6 +1229,10 @@ systemHtml sys = doctypehtml_ $ do
     meta_ [charset_ "UTF-8"]
     title_ "Foobarion"
   body_ $ do
+    p_ $ do
+      toHtml $ pack "No pretty pictures (yet, probably never)."
+      a_ [href_ "https://github.com/mlang/eurorack-metadata"] "Here"
+      toHtml $ pack "is the code."
     dl_ $ do
       dt_ "Power"
       dd_ $ do
@@ -1208,3 +1299,11 @@ manufacturerLink m =
     name = toHtml m
 
 unused = filter (not . isBlindPanel) . ([minBound .. maxBound] \\)
+
+data Device = A100LCB [Module] [Module]
+            | A100LC9 [Module] [Module] [Module]
+            | A100LCMB [Module] [Module]
+            | A100LCMS9 [Module] [Module] [Module]
+            | Megacity
+            | X0xb0x
+            deriving (Show)
