@@ -1,10 +1,13 @@
-{-# LANGUAGE DeriveFunctor, DeriveFoldable, FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
+{-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), Row, Case, System, renderToDirectory
+  Module(..), Row, Case, Case1(..), System, renderToDirectory, identifier, url, moduleHtml
 ) where
+import Control.Applicative ((<|>))
 import Control.Concurrent.Async (forConcurrently_)
-import Control.Monad (when, unless)
+import Control.Monad (guard, when, unless)
 import Control.Monad.Extra (unlessM)
+import Data.Aeson.Types (typeMismatch)
 import Data.Foldable (for_, maximum, sum, toList, traverse_)
 import Data.List (nub, (\\))
 import Data.Maybe (fromJust)
@@ -18,6 +21,8 @@ import Data.Text (Text, intercalate, pack, unpack)
 import Data.Units.SI (Ampere(..), Hour(..), Meter(..), Volt(..), Watt(..))
 import Data.Units.SI.Prefixes (centi, Milli, milli)
 import Data.Units.US (Inch)
+import Data.Yaml
+import GHC.Generics
 import Lucid hiding (for_)
 import System.Directory (doesDirectoryExist, createDirectory)
 import System.FilePath ((</>), (<.>))
@@ -1121,13 +1126,13 @@ url A182_1 = Nothing
 url A184_1 = Nothing
 url A185_2 = Just "http://www.doepfer.de/a1852.htm"
 url A190_4 = Nothing
-url DLD = Nothing
-url QCD = Nothing
-url QCDExp = Nothing
+url DLD = Just "http://www.4mspedals.com/dld.php"
+url QCD = Just "http://www.4mspedals.com/qcd.php"
+url QCDExp = Just "http://www.4mspedals.com/qcdexp.php"
 url SubMix = Nothing
 url DPO = Nothing
 url ErbeVerb = Nothing
-url Maths = Nothing
+url Maths = Just "http://www.makenoisemusic.com/modules/maths"
 url STO = Nothing
 url Branches = Nothing
 url Grids = Nothing
@@ -1178,11 +1183,7 @@ instance ToHtml Currents where
   toHtmlRaw = toHtml
 
 moduleHtml :: Module -> Html ()
-moduleHtml m = doctypehtml_ $ do
-  head_ $ do
-    meta_ [charset_ "UTF-8"]
-    title_ $ fullName m
-  body_ $ do
+moduleHtml m = do
     h1_ $ fullName m
     dl_ $ do
       dt_ "Width"
@@ -1302,8 +1303,24 @@ unused = filter (not . isBlindPanel) . ([minBound .. maxBound] \\)
 
 data Device = A100LCB [Module] [Module]
             | A100LC9 [Module] [Module] [Module]
-            | A100LCMB [Module] [Module]
-            | A100LCMS9 [Module] [Module] [Module]
+            | A100LMB [Module] [Module]
+            | A100LMS9 [Module] [Module] [Module]
             | Megacity
             | X0xb0x
             deriving (Show)
+
+data Case1 = Case1
+  { caseType :: String
+  , rows :: [[Module]]
+  } deriving (Show, Generic)
+
+instance FromJSON Case1
+
+instance FromJSON Module where
+  parseJSON (String s) = foldr (<|>) failed $ map check [minBound .. maxBound] where
+    check mod = do
+      guard $ identifier mod == s
+      pure mod
+    failed = fail $ "expected Module, encountered " <> unpack s
+  parseJSON invalid = typeMismatch "Module" invalid
+

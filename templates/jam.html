@@ -1,0 +1,15 @@
+<article>
+  <section class="header">
+    Posted on $date$
+    $if(author)$
+      by $author$
+    $endif$
+  </section>
+  <section>
+    $body$
+  </section>
+  $if(youtube)$
+    <iframe src="https://www.youtube.com/embed/$youtube$">
+  $endif$
+</article>
+

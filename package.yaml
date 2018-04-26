@@ -19,6 +19,7 @@ extra-source-files:
 description:         Please see the README on Github at <https://github.com/githubuser/foobarion#readme>
 
 dependencies:
+- aeson
 - async
 - base >= 4.7 && < 5
 - directory
@@ -29,6 +30,7 @@ dependencies:
 - raw-strings-qq
 - units >= 2.4 && <= 2.5
 - units-defs >= 2.0 && <= 2.1
+- yaml
 
 library:
   source-dirs: src
@@ -43,3 +45,10 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - eurorack-metadata
+  site:
+    main: site.hs
+    dependencies:
+    - bytestring
+    - hakyll
+    - eurorack-metadata
+
