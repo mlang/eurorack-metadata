@@ -41,24 +41,10 @@ main = hakyll $ do
           >>= loadAndApplyTemplate "templates/default.html" postCtx
           >>= relativizeUrls
 
-  create ["archive.html"] $ do
-    route idRoute
-    compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
-      let archiveCtx = listField "posts" postCtx (return posts)
-                    <> constField "title" "Archives"
-                    <> defaultContext
-
-      makeItem ""
-                >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-                >>= loadAndApplyTemplate "templates/default.html" archiveCtx
-                >>= relativizeUrls
-
-
   match "index.html" $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
+      posts <- recentFirst =<< loadAll ("posts/*" .||. "eurorack/jams/*")
       let indexCtx =
               listField "posts" postCtx (return posts) <>
               constField "title" "Home"                <>
@@ -90,6 +76,19 @@ main = hakyll $ do
         makeItem (show (moduleHtml mod)) >>=
           loadAndApplyTemplate "templates/default.html" postCtx
 
+  match "jams.html" $ do
+    route idRoute
+    compile $ do
+      jams <- recentFirst =<< loadAll "eurorack/jams/*"
+      let indexCtx =
+              listField "jams" postCtx (return jams) <>
+              defaultContext
+
+      getResourceBody
+        >>= applyAsTemplate indexCtx
+        >>= loadAndApplyTemplate "templates/default.html" indexCtx
+        >>= relativizeUrls
+
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx = dateField "date" "%B %e, %Y" <> defaultContext
@@ -107,7 +106,3 @@ rackCompiler = getResourceLBS >>= traverse go where
 
 verify (Case1 "A100LMB" rows) = length rows == 2
 verify (Case1 "A100LMS9" rows) = length rows == 3
-
-allModules :: [Module]
-allModules = [minBound .. maxBound]
-
