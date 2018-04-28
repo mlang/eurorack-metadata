@@ -1,5 +1,6 @@
 ---
 title: Bicycle Prelude
+tags: Acid, X0xb0x
 youtube: 5qYNe8qBoS4
 ---
 This jam was performed in honor of [bicycle day].

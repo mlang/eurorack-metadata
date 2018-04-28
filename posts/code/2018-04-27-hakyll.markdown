@@ -1,5 +1,6 @@
 ---
 title: Hakyll
+tags: Haskell, Web
 ---
 I recently rediscovered Hakyll
 

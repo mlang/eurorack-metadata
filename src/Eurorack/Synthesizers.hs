@@ -1,10 +1,9 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), Row, Case, Case1(..), System, renderToDirectory, identifier, url, moduleHtml, systemHtml
+  Module(..), fullName, Row, Case, Case1(..), System, identifier, url, moduleHtml, systemHtml
 ) where
 import Control.Applicative ((<|>))
-import Control.Concurrent.Async (forConcurrently_)
 import Control.Monad (guard, when, unless)
 import Control.Monad.Extra (unlessM)
 import Data.Aeson.Types (typeMismatch)
@@ -145,9 +144,9 @@ name A100_bl8 = pack "A100-bl8"
 name A100_bl42 = pack "A100-bl42"
 name A101_2 = pack "A101-2"
 name A103 = pack "A103"
-name A106_6 = pack "A106_6"
-name A110_1 = pack "A110_1"
-name A111_4 = pack "A111_4"
+name A106_6 = pack "A106-6"
+name A110_1 = pack "A110-1"
+name A111_4 = pack "A111-4"
 name A114 = pack "A114"
 name A115 = pack "A115"
 name A116 = pack "A116"
@@ -157,14 +156,14 @@ name A120 = pack "A120"
 name A124 = pack "A124"
 name A130 = pack "A130"
 name A131 = pack "A131"
-name A132_3 = pack "A132_3"
+name A132_3 = pack "A132-3"
 name A136 = pack "A136"
 name A138a = pack "A138a"
 name A138b = pack "A138b"
 name A138m = pack "A138m"
 name A138s = pack "A138s"
 name A140 = pack "A140"
-name A143_2 = pack "A143_2"
+name A143_2 = pack "A143-2"
 name A143_9 = pack "A143-9"
 name A145 = pack "A145"
 name A146 = pack "A146"
@@ -1248,15 +1247,6 @@ systemHtml sys = do
 
 modules :: System -> [Module]
 modules = nub . filter (not . isBlindPanel) . concatMap concat
-
-renderToDirectory :: FilePath -> System -> IO ()
-renderToDirectory dir sys = do
-  unlessM (doesDirectoryExist dir) $ createDirectory dir
-  let pages = ("index", systemHtml sys) :
-              map (\mod -> (unpack $ identifier mod, moduleHtml mod))
-                  (modules sys)
-  forConcurrently_ pages $ \(base, html) ->
-    renderToFile (dir </> base <.> "html") html
 
 mini = SocketType (3.5 % milli Meter) TS Mono
 

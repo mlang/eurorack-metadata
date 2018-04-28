@@ -9,8 +9,6 @@ import           Eurorack.Synthesizers
 import           Hakyll
 import           Lucid
 
-
---------------------------------------------------------------------------------
 main :: IO ()
 main = hakyllWith config $ do
   match "images/*" $ do
@@ -27,6 +25,7 @@ main = hakyllWith config $ do
           >>= loadAndApplyTemplate "templates/default.html" defaultContext
           >>= relativizeUrls
 
+  tags <- buildTags ("posts/**" .||. "eurorack/jams/*") (fromCapture "tags/*.html")
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
 
   match "eurorack/jams/*" $ do
@@ -78,9 +77,11 @@ main = hakyllWith config $ do
   for [minBound .. maxBound] $ \mod ->
     create [fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".html"] $ do
       route idRoute
+      let ctx = constField "title" (show $ fullName mod) <> postCtx
       compile $ do
         makeItem (show (moduleHtml mod)) >>=
-          loadAndApplyTemplate "templates/default.html" postCtx >>= relativizeUrls
+          loadAndApplyTemplate "templates/default.html" ctx >>=
+          relativizeUrls
 
   match "jams.html" $ do
     route idRoute
@@ -96,7 +97,18 @@ main = hakyllWith config $ do
         >>= relativizeUrls
 
   tagsRules categories $ \category pattern -> do
-    let title = "Posts in category \"" <> category <> "\""
+    let title = "Posts in category " <> category
+    route idRoute
+    compile $ do
+      posts <- recentFirst =<< loadAll pattern
+      let ctx = constField "title" title <> listField "posts" postCtx (return posts) <> defaultContext
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/tag.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+
+  tagsRules tags $ \tag pattern -> do
+    let title = "Posts with tag " <> tag
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
