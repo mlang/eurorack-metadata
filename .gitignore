@@ -3,4 +3,7 @@ eurorack-metadata.cabal
 html/
 _cache/
 _site/
+site
+site.hi
+site.o
 *~

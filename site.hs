@@ -12,7 +12,7 @@ import           Lucid
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = hakyll $ do
+main = hakyllWith config $ do
   match "images/*" $ do
     route   idRoute
     compile copyFileCompiler
@@ -27,6 +27,8 @@ main = hakyll $ do
           >>= loadAndApplyTemplate "templates/default.html" defaultContext
           >>= relativizeUrls
 
+  categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
+
   match "eurorack/jams/*" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
@@ -35,7 +37,7 @@ main = hakyll $ do
           >>= loadAndApplyTemplate "templates/default.html" postCtx
           >>= relativizeUrls
 
-  match "posts/*" $ do
+  match "posts/**" $ do
     route $ setExtension "html"
     compile $ pandocCompiler
           >>= saveSnapshot "content"
@@ -46,7 +48,7 @@ main = hakyll $ do
   match "index.html" $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll ("posts/*" .||. "eurorack/jams/*")
+      posts <- recentFirst =<< loadAll ("posts/**" .||. "eurorack/jams/*")
       let indexCtx =
               listField "posts" postCtx (return posts) <>
               constField "title" "Home"                <>
@@ -63,6 +65,8 @@ main = hakyll $ do
     route $ setExtension "html"
     compile $ rackCompiler
           >>= loadAndApplyTemplate "templates/default.html" postCtx
+          >>= relativizeUrls
+
           
   create ["synth.html"] $ do
     route idRoute
@@ -91,6 +95,17 @@ main = hakyll $ do
         >>= loadAndApplyTemplate "templates/default.html" indexCtx
         >>= relativizeUrls
 
+  tagsRules categories $ \category pattern -> do
+    let title = "Posts in category \"" <> category <> "\""
+    route idRoute
+    compile $ do
+      posts <- recentFirst =<< loadAll pattern
+      let ctx = constField "title" title <> listField "posts" postCtx (return posts) <> defaultContext
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/tag.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx = teaserField "teaser" "content"
@@ -106,7 +121,13 @@ rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
   go yaml = case decodeEither $ toStrict $ yaml :: Either String [Case1] of
     Left e -> fail $ show e
-    Right v -> if all verify v then pure $ show v else fail "illegal rack"
+    Right v -> if all verify v
+               then pure $ show $ systemHtml $ map rows v
+               else fail "illegal rack"
 
 verify (Case1 "A100LMB" rows) = length rows == 2
 verify (Case1 "A100LMS9" rows) = length rows == 3
+
+config = defaultConfiguration {
+  deployCommand = "rsync -avcz _site/ mlang@blind.guru:blind.guru/modular/"
+}

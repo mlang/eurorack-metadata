@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), Row, Case, Case1(..), System, renderToDirectory, identifier, url, moduleHtml
+  Module(..), Row, Case, Case1(..), System, renderToDirectory, identifier, url, moduleHtml, systemHtml
 ) where
 import Control.Applicative ((<|>))
 import Control.Concurrent.Async (forConcurrently_)
@@ -1225,15 +1225,7 @@ describeSwitches = dl_ . mconcat . toList . fmap desc . frontPanel where
   desc _ = mempty
 
 systemHtml :: System -> Html ()
-systemHtml sys = doctypehtml_ $ do
-  head_ $ do
-    meta_ [charset_ "UTF-8"]
-    title_ "Foobarion"
-  body_ $ do
-    p_ $ do
-      toHtml $ pack "No pretty pictures (yet, probably never)."
-      a_ [href_ "https://github.com/mlang/eurorack-metadata"] "Here"
-      toHtml $ pack "is the code."
+systemHtml sys = do
     dl_ $ do
       dt_ "Power"
       dd_ $ do
@@ -1252,7 +1244,7 @@ systemHtml sys = doctypehtml_ $ do
   cell :: Module -> Html ()
   cell m = td_ [colspan_ $ pack $ show $ round $ width m # HorizontalPitch] $
     unless (isBlindPanel m) $
-      a_ [href_ $ identifier m <> ".html"] (toHtml $ identifier m)
+      a_ [href_ $ "/eurorack/modules/" <> identifier m <> ".html"] (toHtml $ identifier m)
 
 modules :: System -> [Module]
 modules = nub . filter (not . isBlindPanel) . concatMap concat

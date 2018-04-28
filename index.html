@@ -7,18 +7,5 @@ title: Home
 <img src="/images/haskell-logo.png" style="float: right; margin: 10px;" />
 
 <h2>Recent activities</h2>
-  $for(posts)$
-    $if(teaser)$
-      <article>
-        <header>
-          <h3>$title$ - $date$</h3>
-        </header>
-        <section>
-          $teaser$
-        </section>
-        <a href="$url$">Read more</a>
-      </article>
-    $else$
-      <h3><a href="$url$">$title$</a> - $date$</h3>
-    $endif$
-  $endfor$
+$partial("templates/post-list.html")$
+

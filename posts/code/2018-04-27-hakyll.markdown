@@ -1,0 +1,10 @@
+---
+title: Hakyll
+---
+I recently rediscovered Hakyll
+
+<!--more-->
+
+While I am pretty happy with Pelican, a statically typed
+language would be preferable.
+
