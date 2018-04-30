@@ -1,13 +1,13 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.ByteString.Lazy (toStrict)
+import           Data.Foldable (for_)
 import           Data.Semigroup ((<>))
 import           Data.Text (unpack)
-import           Data.Traversable (for)
 import           Data.Yaml
 import           Eurorack.Synthesizers
 import           Hakyll
-import           Lucid
+import           Lucid hiding (for_)
 
 main :: IO ()
 main = hakyllWith config $ do
@@ -30,19 +30,19 @@ main = hakyllWith config $ do
 
   match "eurorack/jams/*" $ do
     route $ setExtension "html"
-    compile $ pandocCompiler
-          >>= saveSnapshot "content"
-          >>= loadAndApplyTemplate "templates/jam.html" postCtx
-          >>= loadAndApplyTemplate "templates/default.html" postCtx
-          >>= relativizeUrls
+    compile $ pandocCompiler >>=
+              saveSnapshot "content" >>=
+              loadAndApplyTemplate "templates/jam.html" postCtx >>=
+              loadAndApplyTemplate "templates/default.html" postCtx >>=
+              relativizeUrls
 
   match "posts/**" $ do
     route $ setExtension "html"
-    compile $ pandocCompiler
-          >>= saveSnapshot "content"
-          >>= loadAndApplyTemplate "templates/post.html"    postCtx
-          >>= loadAndApplyTemplate "templates/default.html" postCtx
-          >>= relativizeUrls
+    compile $ pandocCompiler >>=
+              saveSnapshot "content" >>=
+              loadAndApplyTemplate "templates/post.html" postCtx >>=
+              loadAndApplyTemplate "templates/default.html" postCtx >>=
+              relativizeUrls
 
   match "index.html" $ do
     route idRoute
@@ -66,7 +66,6 @@ main = hakyllWith config $ do
           >>= loadAndApplyTemplate "templates/default.html" postCtx
           >>= relativizeUrls
 
-          
   create ["synth.html"] $ do
     route idRoute
     compile $ do
@@ -74,14 +73,13 @@ main = hakyllWith config $ do
                     >>= loadAndApplyTemplate "templates/default.html" postCtx
                     >>= relativizeUrls
 
-  for [minBound .. maxBound] $ \mod ->
+  for_ [minBound .. maxBound] $ \mod ->
     create [fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".html"] $ do
       route idRoute
       let ctx = constField "title" (show $ fullName mod) <> postCtx
-      compile $ do
-        makeItem (show (moduleHtml mod)) >>=
-          loadAndApplyTemplate "templates/default.html" ctx >>=
-          relativizeUrls
+      compile $ makeItem (show (moduleHtml mod)) >>=
+                loadAndApplyTemplate "templates/default.html" ctx >>=
+                relativizeUrls
 
   match "jams.html" $ do
     route idRoute
@@ -131,14 +129,14 @@ synthTemplate = readTemplate . show $ html where
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
-  go yaml = case decodeEither $ toStrict $ yaml :: Either String [Case1] of
+  go yaml = case decodeEither $ toStrict $ yaml :: Either String System of
     Left e -> fail $ show e
     Right v -> if all verify v
-               then pure $ show $ systemHtml $ map rows v
+               then pure . show $ systemHtml v
                else fail "illegal rack"
 
-verify (Case1 "A100LMB" rows) = length rows == 2
-verify (Case1 "A100LMS9" rows) = length rows == 3
+verify (Case "A100LMB" rows) = length rows == 2
+verify (Case "A100LMS9" rows) = length rows == 3
 
 config = defaultConfiguration {
   deployCommand = "rsync -avcz _site/ mlang@blind.guru:blind.guru/modular/"

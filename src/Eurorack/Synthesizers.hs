@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), fullName, Row, Case, Case1(..), System, identifier, url, moduleHtml, systemHtml
+  Module(..), fullName, Row, Case(..), System, identifier, url, moduleHtml, systemHtml
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)
@@ -133,6 +133,14 @@ identifier SD808 = pack "SD808"
 identifier CO = pack "CO"
 identifier ATC = pack "ATC"
 identifier PerformanceMixer = "PerformanceMixer"
+
+instance FromJSON Module where
+  parseJSON (String s) = foldr (<|>) failed $ map check [minBound .. maxBound] where
+    check mod = do
+      guard $ identifier mod == s
+      pure mod
+    failed = fail $ "expected Module, encountered " <> unpack s
+  parseJSON invalid = typeMismatch "Module" invalid
 
 name Autobot = pack "Autobot"
 name M303 = pack "M303"
@@ -295,8 +303,79 @@ manufacturer CO = VerbosElectronics
 manufacturer ATC = VerbosElectronics
 manufacturer PerformanceMixer = WMD
 
-description :: Module -> Text
-description A180_3 = "Dual Buffered Multiple"
+description :: Module -> Maybe Text
+description Autobot = Just "X0x-style sequencer"
+description M303 = Just "Tb-303 alike synthesizer voice"
+description Robokop = Just "X0x-style trigger sequencer"
+description VScale = Nothing
+description A100_bl2 = Nothing
+description A100_bl4 = Nothing
+description A100_bl8 = Nothing
+description A100_bl42 = Nothing
+description A101_2 = Just "Low Pass Gate"
+description A103 = Just "Low pass VCF with 18dB/octave slope"
+description A106_6 = Just "XP Multimode filter"
+description A110_1 = Just "Standard VCO"
+description A111_4 = Just "Quad Precision VCO"
+description A114 = Just "Dual Ring modulator"
+description A115 = Just "Audio Divider"
+description A116 = Just "VC Waveform Processor"
+description A118 = Just "Noise / Random"
+description A119 = Just "External Input / Envelope Follower"
+description A120 = Just "24dB Low Pass"
+description A124 = Just "Wasp Filter"
+description A130 = Just "Linear VCA"
+description A131 = Just "Exponential VCA"
+description A132_3 = Just "Dual linear/exponential VCA"
+description A136 = Just "Distortion / Waveshaper"
+description A138a = Just "Linear mixer"
+description A138b = Just "Logarithmic mixer"
+description A138m = Just "Matrix Mixer"
+description A138s = Just "Stereo mixer"
+description A140 = Just "ADSR envelope generator"
+description A143_2 = Just "Quad ADSR envelope generator"
+description A143_9 = Just "VC Quadrature LFO/VCO"
+description A145 = Just "LFO"
+description A146 = Just "Variable Waveform LFO"
+description A148 = Just "Dual Sample & Hold"
+description A151 = Just "Quad Sequential Switch"
+description A152 = Just "Voltage Addressed Switch"
+description A156 = Just "Dual Quantizer"
+description A160 = Just "Clock Divider"
+description A160_5 = Just "VC Clock Multiplier"
+description A161 = Just "8-step clock sequencer"
+description A162 = Just "Dual trigger delay"
+description A166 = Just "Logic"
+description A170 = Just "Dual slew limiter"
+description A180_1 = Just "Passive Multiple"
+description A180_2 = Just "Passive Multiple"
+description A180_3 = Just "Dual Buffered Multiple"
+description A182_1 = Just "Switched Multiples"
+description A184_1 = Just "Ring Modulator / S&H / T&H / Slew Limiter"
+description A185_2 = Just "Precision CV Adder"
+description A190_4 = Just "Midi-CV/Gate/Sync-Interface"
+description DLD = Nothing
+description QCD = Nothing
+description QCDExp = Nothing
+description SubMix = Just "12 channel mixer"
+description DPO = Nothing
+description ErbeVerb = Nothing
+description Maths = Nothing
+description STO = Nothing
+description Branches = Nothing
+description Grids = Nothing
+description BIA = Nothing
+description Mixer = Just "4 channel mixer / attenuator"
+description Outs = Just "Stereo Headphone Amp and Line Outs"
+description Evolution = Just "Variable Character Ladder Filter"
+description CP909 = Nothing
+description Hats808 = Nothing
+description One = Just "Mono WAV sample player"
+description RS808 = Nothing
+description SD808 = Nothing
+description CO = Nothing
+description ATC = Nothing
+description PerformanceMixer = Nothing
 
 isBlindPanel :: Module -> Bool
 isBlindPanel A100_bl2 = True
@@ -644,13 +723,13 @@ frontPanel A115 = Tabular [
   , [Nothing, Just ("f/8", Rotary)]
   , [Just ("Out", Socket Out mini), Just ("f/16", Rotary)]
   ]
-frontPanel A116 = ASCIILayoutDiagram [r|
-Audio-In        Lev.
-                Clipping-Level
-Clipping-CV     CCV
-Symm.-CV        SCV
-Audio-Out       Sym
-|] []
+frontPanel A116 = Tabular [
+    [Just ("AudioIn", Socket In mini), Just ("Lev.", Rotary)]
+  , [Nothing, Just ("Clipping-Level", Rotary)]
+  , [Just ("Clipping-CV", Socket In mini), Just ("CCV", Rotary)]
+  , [Just ("Symm.-CV", Socket In mini), Just ("SCV", Rotary)]
+  , [Just ("AudioOut", Socket In mini), Just ("Sym", Rotary)]
+  ]
 frontPanel A118 = ASCIILayoutDiagram [r|
 White           Blue
 Colored         Red
@@ -703,23 +782,23 @@ Ext.Level       +L
 Ext.Level       -L
 Output          -A
 |] []
-frontPanel A138a = ASCIILayoutDiagram [r|
-Input1  In1
-Input2  In2
-Input3  In3
-Input4  In4
-Output  Out
-|] []
+frontPanel A138a = Tabular [
+    [Just ("Input1", Socket In mini), Just ("In1", Rotary)]
+  , [Just ("Input2", Socket In mini), Just ("In2", Rotary)]
+  , [Just ("Input3", Socket In mini), Just ("In3", Rotary)]
+  , [Just ("Input4", Socket In mini), Just ("In4", Rotary)]
+  , [Just ("Output", Socket In mini), Just ("Out", Rotary)]
+  ]
 frontPanel A138b = frontPanel A138a
 frontPanel A138m = UnknownPanel
 frontPanel A138s = UnknownPanel
-frontPanel A140 = ASCIILayoutDiagram [r|
-Gate            A
-Retrig.         D
-Output          S
-Output          R
-Inv.Output      TimeRange       ,
-|] []
+frontPanel A140 = Tabular [
+    [Just ("Gate", Socket In mini), Just ("A", Rotary)]
+  , [Just ("Retrig.", Socket In mini), Just ("D", Rotary)]
+  , [Just ("Output", Socket In mini), Just ("S", Rotary)]
+  , [Just ("Output", Socket In mini), Just ("R", Rotary)]
+  , [Just ("Inv.Output", Socket In mini), Just ("Timerange", Switch ["?", "?", "?"])]
+  ]
 frontPanel A143_2 = ASCIILayoutDiagram [r|
 RT   A   D
                 Attack Decay Sutain Release   Out
@@ -1149,11 +1228,10 @@ url ATC = Just "http://www.verboselectronics.com/modules/"
 url PerformanceMixer = Just "https://wmdevices.com/products/performance-mixer"
 
 type Row = [Module]
-type Case = [Row]
-type System = [Case]
+type System = [Case Module]
 
 rowCurrents = mconcat . map currents
-caseCurrents = mconcat . map rowCurrents
+caseCurrents = mconcat . map rowCurrents . rows
 systemCurrents = mconcat . map caseCurrents
 
 rowHeight = maximum . map height
@@ -1162,15 +1240,15 @@ caseHeight = qSum . map rowHeight
 caseWidth = maximum . map rowWidth
 systemArea = qSum . map (\c -> caseWidth c |*| caseHeight c)
 
-showCaseSize x = let w = caseWidth x
-                     h = caseHeight x
-                 in show (round (w # HorizontalPitch)) ++ " " ++
-                    show HorizontalPitch ++ " × " ++
-                    show (round (h # RackUnit)) ++ " " ++
-                    show RackUnit
+showCaseSize (Case _ x) = let w = caseWidth x
+                              h = caseHeight x
+                          in show (round (w # HorizontalPitch)) ++ " " ++
+                             show HorizontalPitch ++ " × " ++
+                             show (round (h # RackUnit)) ++ " " ++
+                             show RackUnit
 
 fullName :: Module -> Html ()
-fullName m = toHtml $ manufacturerName (manufacturer m) <> pack " " <> name m
+fullName m = toHtml $ manufacturerName (manufacturer m) <> pack " " <> name m <> maybe "" (\x -> " - " <> x) (description m)
 
 showAsIntegralIn x u = show (round $ x # u) <> show u
 
@@ -1183,7 +1261,6 @@ instance ToHtml Currents where
 
 moduleHtml :: Module -> Html ()
 moduleHtml m = do
-    h1_ $ fullName m
     dl_ $ do
       dt_ "Width"
       dd_ $ toHtml $ width m `showAsIntegralIn` HorizontalPitch
@@ -1234,7 +1311,7 @@ systemHtml sys = do
         toHtml $ pack ")"
     for_ sys $ \c -> do
       p_ $ toHtml $ showCaseSize c
-      table_ [class_ "case"] $ traverse_ row c
+      table_ [class_ "case"] $ traverse_ row (rows c)
     h2_ "Known but unused modules"
     ul_ $ for_ (unused $ modules sys) $ li_ . toHtml . fullName
  where
@@ -1246,7 +1323,7 @@ systemHtml sys = do
       a_ [href_ $ "/eurorack/modules/" <> identifier m <> ".html"] (toHtml $ identifier m)
 
 modules :: System -> [Module]
-modules = nub . filter (not . isBlindPanel) . concatMap concat
+modules = nub . filter (not . isBlindPanel) . concatMap toList
 
 mini = SocketType (3.5 % milli Meter) TS Mono
 
@@ -1291,18 +1368,9 @@ data Device = A100LCB [Module] [Module]
             | X0xb0x
             deriving (Show)
 
-data Case1 = Case1
+data Case a = Case
   { caseType :: String
-  , rows :: [[Module]]
-  } deriving (Show, Generic)
+  , rows :: [[a]]
+  } deriving (Show, Generic, Functor, Foldable)
 
-instance FromJSON Case1
-
-instance FromJSON Module where
-  parseJSON (String s) = foldr (<|>) failed $ map check [minBound .. maxBound] where
-    check mod = do
-      guard $ identifier mod == s
-      pure mod
-    failed = fail $ "expected Module, encountered " <> unpack s
-  parseJSON invalid = typeMismatch "Module" invalid
-
+instance FromJSON a => FromJSON (Case a)
