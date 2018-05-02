@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), fullName, Row, Case(..), System, identifier, url, moduleHtml, systemHtml
+  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, url, moduleHtml, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)
@@ -46,7 +46,7 @@ data Module = Autobot | M303 | Robokop
             | A140 | A143_2 | A143_9 | A145 | A146 | A148
             | A151 | A152 | A156
             | A160 | A160_5 | A161 | A162 | A166
-            | A170
+            | A170 | A177_2
             | A180_1 | A180_2 | A180_3 | A182_1 | A184_1 | A185_2
             | A190_4
             | DLD | QCD | QCDExp
@@ -104,6 +104,7 @@ identifier A161 = pack "A161"
 identifier A162 = pack "A162"
 identifier A166 = pack "A166"
 identifier A170 = pack "A170"
+identifier A177_2 = pack "A177-2"
 identifier A180_1 = pack "A180-1"
 identifier A180_2 = pack "A180-2"
 identifier A180_3 = pack "A180-3"
@@ -185,6 +186,7 @@ name A161 = pack "A161"
 name A162 = pack "A162"
 name A166 = pack "A166"
 name A170 = pack "A170"
+name A177_2 = pack "A-177-2"
 name A180_1 = pack "A180-1"
 name A180_2 = pack "A180-2"
 name A180_3 = pack "A180-3"
@@ -273,6 +275,7 @@ manufacturer A161 = Döpfer
 manufacturer A162 = Döpfer
 manufacturer A166 = Döpfer
 manufacturer A170 = Döpfer
+manufacturer A177_2 = Döpfer
 manufacturer A180_1 = Döpfer
 manufacturer A180_2 = Döpfer
 manufacturer A180_3 = Döpfer
@@ -305,9 +308,9 @@ manufacturer PerformanceMixer = WMD
 
 description :: Module -> Maybe Text
 description Autobot = Just "X0x-style sequencer"
-description M303 = Just "Tb-303 alike synthesizer voice"
+description M303 = Just "TB-303 alike synthesizer voice"
 description Robokop = Just "X0x-style trigger sequencer"
-description VScale = Nothing
+description VScale = Just "Buffered (adjustable) multiple"
 description A100_bl2 = Nothing
 description A100_bl4 = Nothing
 description A100_bl8 = Nothing
@@ -330,44 +333,45 @@ description A132_3 = Just "Dual linear/exponential VCA"
 description A136 = Just "Distortion / Waveshaper"
 description A138a = Just "Linear mixer"
 description A138b = Just "Logarithmic mixer"
-description A138m = Just "Matrix Mixer"
+description A138m = Just "Matrix mixer"
 description A138s = Just "Stereo mixer"
 description A140 = Just "ADSR envelope generator"
 description A143_2 = Just "Quad ADSR envelope generator"
 description A143_9 = Just "VC Quadrature LFO/VCO"
 description A145 = Just "LFO"
-description A146 = Just "Variable Waveform LFO"
+description A146 = Just "Variable waveform LFO"
 description A148 = Just "Dual Sample & Hold"
-description A151 = Just "Quad Sequential Switch"
-description A152 = Just "Voltage Addressed Switch"
-description A156 = Just "Dual Quantizer"
-description A160 = Just "Clock Divider"
-description A160_5 = Just "VC Clock Multiplier"
+description A151 = Just "Quad sequential switch"
+description A152 = Just "Voltage addressed switch"
+description A156 = Just "Dual quantizer"
+description A160 = Just "Clock divider"
+description A160_5 = Just "VC clock multiplier"
 description A161 = Just "8-step clock sequencer"
 description A162 = Just "Dual trigger delay"
 description A166 = Just "Logic"
 description A170 = Just "Dual slew limiter"
-description A180_1 = Just "Passive Multiple"
-description A180_2 = Just "Passive Multiple"
-description A180_3 = Just "Dual Buffered Multiple"
-description A182_1 = Just "Switched Multiples"
+description A177_2 = Just "Foot controller"
+description A180_1 = Just "Passive multiple"
+description A180_2 = Just "Passive multiple"
+description A180_3 = Just "Dual buffered multiple"
+description A182_1 = Just "Switched multiples"
 description A184_1 = Just "Ring Modulator / S&H / T&H / Slew Limiter"
-description A185_2 = Just "Precision CV Adder"
+description A185_2 = Just "Precision CV adder"
 description A190_4 = Just "Midi-CV/Gate/Sync-Interface"
 description DLD = Nothing
 description QCD = Nothing
 description QCDExp = Nothing
 description SubMix = Just "12 channel mixer"
-description DPO = Nothing
+description DPO = Just "Dual Prismatic Oscillator"
 description ErbeVerb = Nothing
-description Maths = Nothing
+description Maths = Just "Complex function generator"
 description STO = Nothing
-description Branches = Nothing
-description Grids = Nothing
-description BIA = Nothing
-description Mixer = Just "4 channel mixer / attenuator"
+description Branches = Just "Dual bernoulli gate"
+description Grids = Just "Topographic drum sequencer"
+description BIA = Just "Digital drum voice"
+description Mixer = Just "4 channel mixer / attenuators"
 description Outs = Just "Stereo Headphone Amp and Line Outs"
-description Evolution = Just "Variable Character Ladder Filter"
+description Evolution = Just "Variable character ladder filter"
 description CP909 = Nothing
 description Hats808 = Nothing
 description One = Just "Mono WAV sample player"
@@ -376,6 +380,100 @@ description SD808 = Nothing
 description CO = Nothing
 description ATC = Nothing
 description PerformanceMixer = Nothing
+
+synopsis :: Module -> Maybe (Html ())
+synopsis Autobot = Nothing
+synopsis M303 = Nothing
+synopsis Robokop = Nothing
+synopsis VScale = Just $ p_ $ toHtml $ pack "A precision active multiple which features very high input impedance, very low output impedance and an offset voltage of <1mV."
+synopsis A100_bl2 = Nothing
+synopsis A100_bl4 = Nothing
+synopsis A100_bl8 = Nothing
+synopsis A100_bl42 = Nothing
+synopsis A101_2 = Just $ do
+  p_ "A 12 dB low pass filter that can be switched to VCA or a combination of Low Pass and VCA. The controlling elements for frequency (LP mode) resp. amplitude (VCA mode) are so-called vactrols.  Because of the vactrol circuit the audio signal is not fully attenuated in the VCA mode at the minimum setting of the F/A control."
+  p_ "The frequency (in LP mode) resp. the amplitude (in VCA mode) is controlled manually (F/A) and by the 2 control inputs CV1 (without attenuator) and CV2 (with attenuator). The audio input is equipped with an attenuator to enable distortion too (above position 5 distortion is obtained with standard A-100 audio levels, e.g. VCO). The resonance function \"colors\" the sound and is adjustable all the way up to self-oscillation. Resonance and consequently self-oscillation may vary with the filter frequency because of vactrol tolerances. Due to the circuit the resonance has a little bit of influence on the audio level (increasing resonance = increasing audio level). To obtain the original Buchla sound the resonance control has to be set fully counterclockwise."
+  p_ "The function of the module is controlled by a manual switch. The left and right positions of the switch correspond to LP resp. VCA mode. In the middle position one obtains the combination of Low Pass and VCA. In this position it is also possible to control the function of the module by the two Gate inputs G1 and G2. The table printed at the front panel shows the connection between the gate levels (L = low, H = high) and the module function."
+
+synopsis A103 = Just $ p_ $ toHtml $ pack "The circuit is based on a modified transistor ladder (Moog ladder) and is a reproduction of the legendary TB303 filter."
+synopsis A106_6 = Just $ do
+  p_ $ do
+    toHtml (pack "A multimode filter based on the filter circuit of the ")
+    a_ [href_ $ pack "https://en.wikipedia.org/wiki/Oberheim_Xpander"] $ toHtml (pack "Oberheim Xpander")
+    toHtml (pack ". The module features 15 different filter types with 8 filters available simultaneously. The toggle switch Filter Group is used to switch between 2 filter groups.")
+synopsis A110_1 = Just $ do
+  p_ "A voltage controlled oscillator with a frequency range of about eight octaves (ca. 15Hz ... 8kHz). It can produce four waveforms simultaneously: rectangle, sawtooth, triangle, and sine wave. The output levels are typically 8Vpp for saw and rectangle, and 10Vpp for triangle and sine."
+synopsis A111_4 = Just $ p_ $ toHtml $ pack "Four precision VCOs with individual controls, inputs and outputs as well as a common control and output unit."
+synopsis A114 = Just $ p_ $ toHtml $ pack "Two individual ring modulator units with X and Y input and X*Y output sockets per unit."
+synopsis A115 = Nothing
+synopsis A116 = Nothing
+synopsis A118 = Nothing
+synopsis A119 = Nothing
+synopsis A120 = Nothing
+synopsis A124 = Nothing
+synopsis A130 = Nothing
+synopsis A131 = Nothing
+synopsis A132_3 = Nothing
+synopsis A136 = Nothing
+synopsis A138a = Nothing
+synopsis A138b = Nothing
+synopsis A138m = Nothing
+synopsis A138s = Nothing
+synopsis A140 = Just $ do
+  p_ "An (ADSR) envelope generator.  The shape of the envelope is governed by four parameters: Attack, Decay, Sustain and Release."
+  p_ "The envelope is started (triggered) by a gate signal either from the INT.GATE voltage on the system bus, or, if a signal is put into it, from the gate input socket."
+  p_ "The envelope can also be re-triggered, ie. start from scratch again, each time a trigger signal is sensed at the Retrig. input socket, when the gate is still open."
+synopsis A143_2 = Nothing
+synopsis A143_9 = Nothing
+synopsis A145 = Nothing
+synopsis A146 = Nothing
+synopsis A148 = Nothing
+synopsis A151 = Nothing
+synopsis A152 = Nothing
+synopsis A156 = Nothing
+synopsis A160 = Nothing
+synopsis A160_5 = Nothing
+synopsis A161 = Nothing
+synopsis A162 = Nothing
+synopsis A166 = Nothing
+synopsis A170 = Nothing
+synopsis A177_2 = Nothing
+synopsis A180_1 = Nothing
+synopsis A180_2 = Nothing
+synopsis A180_3 = Nothing
+synopsis A182_1 = Just $ p_ $ toHtml $ pack "A passive multiple equipped with a 3-position switch per socket that allows to connect the corresponding socket to bus #1 (left position), bus #2 (right position) or to turn the socket off (center position)."
+synopsis A184_1 = Just $ do
+  p_ "The upper section is a ring modulator with the usual X/Y inputs and the X*Y output."
+  p_ "The lower section is a Sample & Hold (S&H) / Track & Hold (T&H) unit followed by a slew limiter. A toggle switch is used to set the mode to S&H or T&H. In S&H mode the unit picks out a sample from the voltage at the SH input at the rising edge of the trigger signal input. In T&H mode the output follows the input voltage as long as the level of the trigger signal is high. As soon as the trigger signal turns low, the last voltage is stored. The trigger input is internally normalled to high, i.e. the unit works just as a slew limiter in T&H mode when no trigger signal is applied."
+synopsis A185_2 = Just $ p_ $ toHtml $ pack "A precision control voltage adder with four inputs: one with attenuator and three without attenuator. Each input is normalled to +1 V."
+synopsis A190_4 = Nothing
+synopsis DLD = Nothing
+synopsis QCD = Nothing
+synopsis QCDExp = Nothing
+synopsis SubMix = Nothing
+synopsis DPO = Nothing
+synopsis ErbeVerb = Nothing
+synopsis Maths = Nothing
+synopsis STO = Nothing
+synopsis Branches = Just $ p_ "Takes a logic signal (trigger or gate) as an input, and routes it to either of its two outputs according to a random coin toss."
+synopsis Grids = Nothing
+synopsis BIA = Just $ p_ "A parameterized digital drum synthesizer. At its heart, it is a simple six-oscillator additive synthesizer with adjustable waveform, harmonic spread and decay. Adjustable attack including a noise oscillator is also included. These are summed and fed into an infinifolder for crunch and variety."
+synopsis Mixer = Nothing
+synopsis Outs = Nothing
+synopsis Evolution = Nothing
+synopsis CP909 = Nothing
+synopsis Hats808 = Nothing
+synopsis One = Nothing
+synopsis RS808 = Nothing
+synopsis SD808 = Nothing
+synopsis CO = Just $ do
+  p_ "A master oscillator with a voltage controlled waveshaper and a modulation oscillator that can be used for FM or AM."
+  p_ "The waveshape of the modulation can be set to triangle, square or saw, each with a dedicated output.  Modulation amount can be voltage controlled with a reversing attenuator on the CV input."
+  p_ "The master oscillator has dedicated outputs for triangle, square and sine waves. The master output can blend from sine to square to saw to folded sine all from voltage control with reversing attenuators on all of the CV inputs."
+  p_ "The oscillators are analog triangle cores with discrete transistor exponential converters. Each has inputs for linear and exponential FM. Both have 1 volt/octave trimmed CV inputs as well."
+synopsis ATC = Just $
+  p_ $ toHtml $ pack "A totally discrete VCA with simultaneous exponential and linear CV input. It also contains an all discrete, Vactrol based VCF with diode limited resonance. It also has a discrete input gain stage. Careful balancing of the input gain and resonance control sets the mix of self oscillation and input signal, distorted on the VCA input if desired."
+synopsis PerformanceMixer = Nothing
 
 isBlindPanel :: Module -> Bool
 isBlindPanel A100_bl2 = True
@@ -428,6 +526,7 @@ width A161 = 4 % HorizontalPitch
 width A162 = 8 % HorizontalPitch
 width A166 = 8 % HorizontalPitch
 width A170 = 8 % HorizontalPitch
+width A177_2 = 4 % HorizontalPitch
 width A180_1 = 4 % HorizontalPitch
 width A180_2 = 2 % HorizontalPitch
 width A180_3 = 4 % HorizontalPitch
@@ -512,6 +611,7 @@ currents A161 = Currents (mA 20) (mA 0) (mA 0)
 currents A162 = Currents (mA 40) (mA 0) (mA 0)
 currents A166 = Currents (mA 40) (mA 20) (mA 0)
 currents A170 = Currents (mA 20) (mA 20) (mA 0)
+currents A177_2 = Currents (mA 10) (mA 10) (mA 0)
 currents A180_1 = mempty
 currents A180_2 = mempty
 currents A180_3 = Currents (mA 20) (mA 20) (mA 0)
@@ -759,13 +859,13 @@ frontPanel A124 = ASCIILayoutDiagram [r|
   BPOut    Res.
   LP/HPOut Mix
 |] []
-frontPanel A130 = ASCIILayoutDiagram [r|
-CV1        Gain
-CV2        CV2
-AudioIn1   In1
-AudioIn2   In2
-AudioOut   Out
-|] []
+frontPanel A130 = Tabular [
+    [Just ("CV1", Socket In mini), Just ("Gain", Rotary)]
+  , [Just ("CV2", Socket In mini), Just ("CV2", Rotary)]
+  , [Just ("AudioIn1", Socket In mini), Just ("In1", Rotary)]
+  , [Just ("AudioIn2", Socket In mini), Just ("In2", Rotary)]
+  , [Just ("AudioOut", Socket In mini), Just ("Out", Rotary)]
+  ]
 frontPanel A131 = frontPanel A130
 frontPanel A132_3 = ASCIILayoutDiagram [r|
 CV-In   CV
@@ -943,6 +1043,7 @@ In              CURSOR_UP
 Time-Range      CURSOR_DOWN
 Out             , ,
 |] []
+frontPanel A177_2 = UnknownPanel
 frontPanel A180_1 = UnknownPanel
 frontPanel A180_2 = UnknownPanel
 frontPanel A180_3 = UnknownPanel
@@ -1132,9 +1233,9 @@ frontPanel SD808 = Tabular $ map (map Just) [
   , [("Tone", Rotary)]
   , [("Snappy", Rotary)]
   , [("Accent", Rotary)]
-  , [("Accent-In", Socket In mini)]
-  , [("Gate-In", Socket In mini)]
-  , [("SD-Out", Socket Out mini)]
+  , [("AccentIn", Socket In mini)]
+  , [("GateIn", Socket In mini)]
+  , [("SDOut", Socket Out mini)]
   ]
 frontPanel CO = ASCIILayoutDiagram [r|
 , t sq s  sync   t sq s out
@@ -1164,8 +1265,8 @@ url A100_bl8 = Nothing
 url A100_bl42 = Nothing
 url A101_2 = Just "http://www.doepfer.de/a1012.htm"
 url A103 = Nothing
-url A106_6 = Nothing
-url A110_1 = Nothing
+url A106_6 = Just "http://www.doepfer.de/a1066.htm"
+url A110_1 = Just "http://www.doepfer.de/a110.htm"
 url A111_4 = Nothing
 url A114 = Nothing
 url A115 = Nothing
@@ -1197,13 +1298,14 @@ url A161 = Nothing
 url A162 = Nothing
 url A166 = Nothing
 url A170 = Nothing
-url A180_1 = Nothing
-url A180_2 = Nothing
-url A180_3 = Nothing
-url A182_1 = Nothing
-url A184_1 = Nothing
+url A177_2 = Just "http://www.doepfer.de/a1772.htm"
+url A180_1 = Just "http://www.doepfer.de/a180.htm"
+url A180_2 = url A180_1
+url A180_3 = Just "http://www.doepfer.de/a1803.htm"
+url A182_1 = Just "http://www.doepfer.de/a182.htm"
+url A184_1 = Just "http://www.doepfer.de/a1841.htm"
 url A185_2 = Just "http://www.doepfer.de/a1852.htm"
-url A190_4 = Nothing
+url A190_4 = Just "http://www.doepfer.de/a1904.htm"
 url DLD = Just "http://www.4mspedals.com/dld.php"
 url QCD = Just "http://www.4mspedals.com/qcd.php"
 url QCDExp = Just "http://www.4mspedals.com/qcdexp.php"
@@ -1212,8 +1314,8 @@ url DPO = Nothing
 url ErbeVerb = Nothing
 url Maths = Just "http://www.makenoisemusic.com/modules/maths"
 url STO = Nothing
-url Branches = Nothing
-url Grids = Nothing
+url Branches = Just "https://mutable-instruments.net/modules/branches/"
+url Grids = Just "https://mutable-instruments.net/modules/grids/"
 url BIA = Nothing
 url Mixer = Nothing
 url Outs = Nothing
@@ -1227,7 +1329,29 @@ url CO = Just "http://www.verboselectronics.com/modules/"
 url ATC = Just "http://www.verboselectronics.com/modules/"
 url PerformanceMixer = Just "https://wmdevices.com/products/performance-mixer"
 
+usage :: Module -> Maybe (Html ())
+usage Robokop = Just copyPaste where
+  copyPaste = do
+    h3_ $ toHtml $ pack "Copy & paste patterns (Pattern Play Mode)"
+    p_ $ toHtml $ pack "To copy a pattern to the paste buffer, hold the Inst/Select button while pressing one of the pattern buttons (1-16)."
+    p_ $ toHtml $ pack "To override a particular pattern with the contents of the paste buffer, optionally select the desired pattern group with the detented rotary, and hold the Write/Next button while pressing the desired pattern button (1..16)."
+usage VScale = Nothing
+
+usage A185_2 = Just $ do
+  p_ $ toHtml $ pack "The input with attenuator can be used for modulations. The Lev.1 control is used to adjust the depth of the modulation, the first switch selects the polarity of the modulation. If no signal is connected to the first socket the attenuator works as a (fine) tuning knob because a voltage in the range of 0...1V is added to (right position of the switch) or subtracted from (left position of the switch) the output."
+  p_ $ toHtml $ pack "The inputs without attenuators are typically used to add control voltages following the 1V/Oct standard."
+  p_ $ toHtml $ pack "Each input is equipped with a 3-position switch that determines if the corresponding voltage is added (right position), subtracted (left position) or if the input has no effect (center position). If no plug is inserted the corresponding switch works as an octave switch as the socket is normalled to +1 V."
+  p_ $ toHtml $ pack "The module has 4 outputs where one is inverted. An internal jumper can be used to connect the non-inverted or inverted output to the CV line of the A-100 bus."
+usage _ = Nothing
+
 type Row = [Module]
+data Case a = Case
+  { caseType :: String
+  , rows :: [[a]]
+  } deriving (Show, Generic, Functor, Foldable)
+
+instance FromJSON a => FromJSON (Case a)
+
 type System = [Case Module]
 
 rowCurrents = mconcat . map currents
@@ -1262,10 +1386,6 @@ instance ToHtml Currents where
 moduleHtml :: Module -> Html ()
 moduleHtml m = do
     dl_ $ do
-      dt_ "Width"
-      dd_ $ toHtml $ width m `showAsIntegralIn` HorizontalPitch
-      dt_ "Currents"
-      dd_ $ toHtml $ currents m
       dt_ "Manufacturer"
       dd_ $ manufacturerLink $ manufacturer m
       case url m of
@@ -1273,12 +1393,17 @@ moduleHtml m = do
           dt_ "Web"
           dd_ $ a_ [href_ $ pack u] (toHtml u)
         _ -> pure ()
-    h2_ "Front panel"
-    panelHtml $ frontPanel m
-    when (hasSwitchPositionLabels m) $ do
-      h3_ "Labels of switch positions and rotary detents"
-      describeSwitches m
+    maybe (pure ()) (\x -> h2_ "Usage" <> x) $ usage m
  
+frontPanelHtml :: Module -> Html ()
+frontPanelHtml m = do
+  h2_ "Front panel"
+  panelHtml $ frontPanel m
+  when (hasSwitchPositionLabels m) $ do
+    h3_ "Labels of switch positions and rotary detents"
+    describeSwitches m
+
+panelHtml :: Panel -> Html ()
 panelHtml Blank = p_ "Blank (blind) front panel."
 panelHtml UnknownPanel = p_ "Panel layout unknown."
 panelHtml (ASCIILayoutDiagram layout _) = pre_ $ toHtml layout
@@ -1320,7 +1445,7 @@ systemHtml sys = do
   cell :: Module -> Html ()
   cell m = td_ [colspan_ $ pack $ show $ round $ width m # HorizontalPitch] $
     unless (isBlindPanel m) $
-      a_ [href_ $ "/eurorack/modules/" <> identifier m <> ".html"] (toHtml $ identifier m)
+      a_ ([href_ $ "/eurorack/modules/" <> identifier m <> ".html"] <> maybe [] (\x -> [title_ x]) (description m)) (toHtml $ identifier m)
 
 modules :: System -> [Module]
 modules = nub . filter (not . isBlindPanel) . concatMap toList
@@ -1368,9 +1493,11 @@ data Device = A100LCB [Module] [Module]
             | X0xb0x
             deriving (Show)
 
-data Case a = Case
-  { caseType :: String
-  , rows :: [[a]]
-  } deriving (Show, Generic, Functor, Foldable)
-
-instance FromJSON a => FromJSON (Case a)
+impedance :: Html ()
+impedance =
+  a_ [href_ $ pack "https://en.wikipedia.org/wiki/Electrical_impedance"] $
+  toHtml $ pack "impedance"
+vca :: Html ()
+vca =
+  a_ [href_ $ pack "https://en.wikipedia.org/wiki/Variable-gain_amplifier"] $
+  toHtml $ pack "VCA"

@@ -2,8 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (for_)
+import           Data.Metrology ((#))
+import           Data.Metrology.SI (Length)
 import           Data.Semigroup ((<>))
 import           Data.Text (unpack)
+import           Data.Units.SI (Ampere(..), Meter(..))
+import           Data.Units.SI.Prefixes (centi, milli)
 import           Data.Yaml
 import           Eurorack.Synthesizers
 import           Hakyll
@@ -74,10 +78,11 @@ main = hakyllWith config $ do
                     >>= relativizeUrls
 
   for_ [minBound .. maxBound] $ \mod ->
-    create [fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".html"] $ do
-      route idRoute
-      let ctx = constField "title" (show $ fullName mod) <> postCtx
-      compile $ makeItem (show (moduleHtml mod)) >>=
+    create ([fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".markdown"]) $ do
+      route $ setExtension "html"
+      let ctx = moduleCtx mod
+      compile $ pandocCompiler >>=
+                loadAndApplyTemplate "templates/module.html" ctx >>=
                 loadAndApplyTemplate "templates/default.html" ctx >>=
                 relativizeUrls
 
@@ -122,6 +127,23 @@ postCtx = teaserField "teaser" "content"
        <> dateField "date" "%B %e, %Y"
        <> defaultContext
 
+moduleCtx :: Module -> Context String
+moduleCtx m = constField "title" (show $ fullName m)
+           <> constField "synopsis" (maybe "" show $ synopsis m)
+           <> constField "homepage" (maybe "" unpack $ url m)
+           <> functionField "current" c
+	   <> lengthField "width" (width m)
+           <> constField "frontPanel" (show $ frontPanelHtml m)
+           <> defaultContext
+  where
+    c ["+12V", "mA"] i = case currents m of
+      Currents mA _ _ -> pure $ show $ round $ mA # milli Ampere
+    c ["-12V", "mA"] i = case currents m of
+      Currents _ mA _ -> pure $ show $ round $ mA # milli Ampere
+    c ["+5V", "mA"] i = case currents m of
+      Currents _ _ mA -> pure $ show $ round $ mA # milli Ampere
+    c _ i = error $ "current(): missing argument in item " <> show (itemIdentifier i)
+
 synthTemplate :: Template
 synthTemplate = readTemplate . show $ html where
   html :: Html ()
@@ -141,3 +163,10 @@ verify (Case "A100LMS9" rows) = length rows == 3
 config = defaultConfiguration {
   deployCommand = "rsync -avcz _site/ mlang@blind.guru:blind.guru/modular/"
 }
+
+lengthField :: String -> Length -> Context String
+lengthField k l = functionField k f where
+  f ["HP"] i = pure $ show $ round $ l # HorizontalPitch
+  f ["U"] i = pure $ show $ round $ l # RackUnit
+  f [] i = f ["HP"] i
+  f _ i = error $ "width(): Unsupported unit in item " <> show (itemIdentifier i)

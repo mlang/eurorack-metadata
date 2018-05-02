@@ -1,0 +1,11 @@
+$synopsis$
+<p>
+$width("HP")$ HP$if(current("+12V", "mA"))$, $current("+12V", "mA")$ mA @ +12V$endif$$if(current("-12V", "mA"))$, $current("-12V", "mA")$ mA @ -12V$endif$$if(current("+5V", "mA"))$, $current("+5V", "mA")$ mA @ +5V$endif$
+</p>
+$frontPanel$
+$body$
+$if(homepage)$
+<p>See the <a href="$homepage$">homepage</a> for more details.</p>
+$endif$
+<div><a href="https://github.com/mlang/eurorack-metadata/edit/master/$path$">Edit</a></div>
+

@@ -1,0 +1,22 @@
+## Usage
+
+The frequency or pitch of the VCO is determined by the position of the octave
+(Range) switch and tuning (Tune) knob, and by the voltage present at the CV
+inputs. Footage (the octave of the fundamental) is set by the Range control in
+five steps, and Fine tuning controlled by the Tune knob. The tune knob range
+is about +/- 1/2 octave.
+
+Pulse width of the square wave can be controlled via a knob (PW) and via the
+voltage present at the PW-CV1 (without attenuatior) and PW-CV2 (with
+attenuator) input.
+
+## Details
+
+The core is a sawtooth oscillator. The other waveforms are derived from the
+sawtooth by internal waveform converters. As the sawtooth reset (i.e. the
+back-to-zero slope) is not infinite fast but takes a little bit of time the
+derived waveforms triangle and sine are not perfect! At the top of the
+waveform they have a small glitch or notch that is caused by the sawtooth
+reset and cannot be eliminated by the waveform converters. The sine is derived
+from the triangle by a simple diode-based converter and the sine shape is not
+perfect (only a rounded triangle).
