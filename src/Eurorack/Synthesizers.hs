@@ -38,6 +38,8 @@ v = (% Volt)
 
 data Module = Autobot | M303 | Robokop
             | VScale
+            | Salt | SaltPlus
+            | DUSeq
             | A100_bl2 | A100_bl4 | A100_bl8 | A100_bl42
             | A101_2 | A103 | A106_6
             | A110_1 | A111_4 | A114 | A115 | A116 | A118 | A119
@@ -65,6 +67,9 @@ identifier Autobot = pack "Autobot"
 identifier M303 = pack "M303"
 identifier Robokop = pack "Robokop"
 identifier VScale = pack "VScale"
+identifier Salt = pack "Salt"
+identifier SaltPlus = pack "Salt+"
+identifier DUSeq = pack "DUSeq"
 identifier A100_bl2 = pack "A100-BL2"
 identifier A100_bl4 = pack "A100-BL4"
 identifier A100_bl8 = pack "A100-BL8"
@@ -147,6 +152,9 @@ name Autobot = pack "Autobot"
 name M303 = pack "M303"
 name Robokop = pack "Robokop"
 name VScale = pack "V-Scale"
+name Salt = identifier Salt
+name SaltPlus = identifier SaltPlus
+name DUSeq = pack "DU-Seq"
 name A100_bl2 = pack "A100-bl2"
 name A100_bl4 = pack "A100-bl4"
 name A100_bl8 = pack "A100-bl8"
@@ -219,6 +227,8 @@ name PerformanceMixer = pack "Performance Mixer"
 
 data Manufacturer = AcidLab
                   | AJHSynth
+                  | Bela
+                  | DetroitUnderground
                   | Döpfer
                   | FourMS
                   | LowGainElectronics
@@ -226,6 +236,7 @@ data Manufacturer = AcidLab
                   | MutableInstruments
                   | NoiseEngineering
                   | PittsburghModular
+                  | RebelTechnologies
                   | RossumEletroMusic
                   | TipTopAudio
                   | VerbosElectronics
@@ -236,6 +247,9 @@ manufacturer Autobot = AcidLab
 manufacturer M303 = AcidLab
 manufacturer Robokop = AcidLab
 manufacturer VScale = AJHSynth
+manufacturer Salt = RebelTechnologies
+manufacturer SaltPlus = RebelTechnologies
+manufacturer DUSeq = DetroitUnderground
 manufacturer A100_bl2 = Döpfer
 manufacturer A100_bl4 = Döpfer
 manufacturer A100_bl8 = Döpfer
@@ -311,6 +325,9 @@ description Autobot = Just "X0x-style sequencer"
 description M303 = Just "TB-303 alike synthesizer voice"
 description Robokop = Just "X0x-style trigger sequencer"
 description VScale = Just "Buffered (adjustable) multiple"
+description Salt = Just "Programmable module"
+description SaltPlus = Just "Expander for Salt"
+description DUSeq = Just "Sequencer"
 description A100_bl2 = Nothing
 description A100_bl4 = Nothing
 description A100_bl8 = Nothing
@@ -386,6 +403,9 @@ synopsis Autobot = Nothing
 synopsis M303 = Nothing
 synopsis Robokop = Nothing
 synopsis VScale = Just $ p_ $ toHtml $ pack "A precision active multiple which features very high input impedance, very low output impedance and an offset voltage of <1mV."
+synopsis Salt = Nothing
+synopsis SaltPlus = Nothing
+synopsis DUSeq = Nothing
 synopsis A100_bl2 = Nothing
 synopsis A100_bl4 = Nothing
 synopsis A100_bl8 = Nothing
@@ -421,8 +441,6 @@ synopsis A138m = Nothing
 synopsis A138s = Nothing
 synopsis A140 = Just $ do
   p_ "An (ADSR) envelope generator.  The shape of the envelope is governed by four parameters: Attack, Decay, Sustain and Release."
-  p_ "The envelope is started (triggered) by a gate signal either from the INT.GATE voltage on the system bus, or, if a signal is put into it, from the gate input socket."
-  p_ "The envelope can also be re-triggered, ie. start from scratch again, each time a trigger signal is sensed at the Retrig. input socket, when the gate is still open."
 synopsis A143_2 = Nothing
 synopsis A143_9 = Nothing
 synopsis A145 = Nothing
@@ -487,6 +505,9 @@ width Autobot = 50 % HorizontalPitch
 width M303 = 16 % HorizontalPitch
 width Robokop = 50 % HorizontalPitch
 width VScale = 4 % HorizontalPitch
+width Salt = 12 % HorizontalPitch
+width SaltPlus = 10 % HorizontalPitch
+width DUSeq = 30 % HorizontalPitch
 width A100_bl2 = 2 % HorizontalPitch
 width A100_bl4 = 4 % HorizontalPitch
 width A100_bl8 = 8 % HorizontalPitch
@@ -572,6 +593,9 @@ currents Autobot = Currents (mA 80) (mA 20) (mA 0)
 currents M303 = Currents (mA 60) (mA 20) (mA 0)
 currents Robokop = Currents (mA 80) (mA 20) (mA 0)
 currents VScale = Currents (mA 15) (mA 15) (mA 0)
+currents Salt = Currents (mA 250) (mA 50) (mA 0)
+currents SaltPlus = mempty
+currents DUSeq = Currents (mA 8) (mA 8) (mA 110)
 currents A100_bl2 = mempty
 currents A100_bl4 = mempty
 currents A100_bl8 = mempty
@@ -732,6 +756,9 @@ e=Clear
 f=Write/Next
 |] []
 frontPanel VScale = UnknownPanel
+frontPanel Salt = UnknownPanel
+frontPanel SaltPlus = UnknownPanel
+frontPanel DUSeq = UnknownPanel
 frontPanel A100_bl2 = Blank
 frontPanel A100_bl4 = Blank
 frontPanel A100_bl8 = Blank
@@ -1259,6 +1286,9 @@ url Autobot = Nothing
 url M303 = Nothing
 url Robokop = Nothing
 url VScale = Just "http://www.ajhsynth.com/V-Scale.html"
+url Salt = Just "https://blog.bela.io/2018/05/02/salt-a-programmable-eurorack-syntesizer/"
+url SaltPlus = url Salt
+url DUSeq = Nothing
 url A100_bl2 = Nothing
 url A100_bl4 = Nothing
 url A100_bl8 = Nothing
@@ -1289,8 +1319,8 @@ url A143_9 = Nothing
 url A145 = Nothing
 url A146 = Nothing
 url A148 = Nothing
-url A151 = Nothing
-url A152 = Nothing
+url A151 = Just "http://www.doepfer.de/a151.htm"
+url A152 = Just "http://www.doepfer.de/a152.htm"
 url A156 = Nothing
 url A160 = Nothing
 url A160_5 = Nothing
@@ -1462,6 +1492,8 @@ manufacturerUrl _ = Nothing
 
 manufacturerName AcidLab = pack "AcidLab"
 manufacturerName AJHSynth = pack "AJH Synth"
+manufacturerName Bela = pack "Bela"
+manufacturerName DetroitUnderground = pack "Detroit Underground"
 manufacturerName Döpfer = pack "Döpfer"
 manufacturerName FourMS = pack "4ms"
 manufacturerName LowGainElectronics = pack "Low-Gain Electronics"
@@ -1469,6 +1501,7 @@ manufacturerName MakeNoise = pack "Make Noise"
 manufacturerName MutableInstruments = pack "Mutable Instruments"
 manufacturerName NoiseEngineering = pack "Noise Engineering"
 manufacturerName PittsburghModular = pack "Pittsburgh Modular"
+manufacturerName RebelTechnologies = pack "Rebel Technologies"
 manufacturerName RossumEletroMusic = pack "Rossum Eletro-Music"
 manufacturerName TipTopAudio = pack "Tiptop Audio"
 manufacturerName VerbosElectronics = pack "Verbos Electronics"

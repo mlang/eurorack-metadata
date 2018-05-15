@@ -1,0 +1,9 @@
+## Usage
+
+The envelope is started (triggered) by a gate signal either from the INT.GATE
+voltage on the system bus, or, if a signal is put into it, from the gate input
+socket.
+
+The envelope can also be re-triggered, ie. start from scratch again, each time
+a trigger signal is sensed at the Retrig. input socket, when the gate is still
+high.

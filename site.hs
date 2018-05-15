@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (for_)
+import           Data.Maybe (catMaybes)
 import           Data.Metrology ((#))
 import           Data.Metrology.SI (Length)
 import           Data.Semigroup ((<>))
@@ -129,10 +130,10 @@ postCtx = teaserField "teaser" "content"
 
 moduleCtx :: Module -> Context String
 moduleCtx m = constField "title" (show $ fullName m)
-           <> constField "synopsis" (maybe "" show $ synopsis m)
-           <> constField "homepage" (maybe "" unpack $ url m)
+           <> mconcat (catMaybes [constField "synopsis" . show <$> synopsis m,
+                                 constField "homepage" . unpack <$> url m])
            <> functionField "current" c
-	   <> lengthField "width" (width m)
+           <> lengthField "width" (width m)
            <> constField "frontPanel" (show $ frontPanelHtml m)
            <> defaultContext
   where
