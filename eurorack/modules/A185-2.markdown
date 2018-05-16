@@ -1,0 +1,18 @@
+## Usage
+
+The input with attenuator can be used for modulations. The Lev.1 control is used to
+adjust the depth of the modulation, the first switch selects the polarity of the
+modulation.  If no signal is connected to the first socket the attenuator works as a
+(fine) tuning knob because a voltage in the range of 0...1V is added to (right
+position of the switch) or subtracted from (left position of the switch) the output.
+
+The inputs without attenuators are typically used to add control voltages following
+the 1V/Oct standard.
+
+Each input is equipped with a 3-position switch that determines if the corresponding
+voltage is added (right position), subtracted (left position) or if the input has no
+effect (center position).  If no plug is inserted the corresponding switch works as
+an octave switch as the socket is normalled to +1 V.
+
+The module has 4 outputs where one is inverted.  An internal jumper can be used to
+connect the non-inverted or inverted output to the CV line of the A-100 bus.

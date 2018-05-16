@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, url, moduleHtml, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml
+  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, url, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)
@@ -1359,21 +1359,6 @@ url CO = Just "http://www.verboselectronics.com/modules/"
 url ATC = Just "http://www.verboselectronics.com/modules/"
 url PerformanceMixer = Just "https://wmdevices.com/products/performance-mixer"
 
-usage :: Module -> Maybe (Html ())
-usage Robokop = Just copyPaste where
-  copyPaste = do
-    h3_ $ toHtml $ pack "Copy & paste patterns (Pattern Play Mode)"
-    p_ $ toHtml $ pack "To copy a pattern to the paste buffer, hold the Inst/Select button while pressing one of the pattern buttons (1-16)."
-    p_ $ toHtml $ pack "To override a particular pattern with the contents of the paste buffer, optionally select the desired pattern group with the detented rotary, and hold the Write/Next button while pressing the desired pattern button (1..16)."
-usage VScale = Nothing
-
-usage A185_2 = Just $ do
-  p_ $ toHtml $ pack "The input with attenuator can be used for modulations. The Lev.1 control is used to adjust the depth of the modulation, the first switch selects the polarity of the modulation. If no signal is connected to the first socket the attenuator works as a (fine) tuning knob because a voltage in the range of 0...1V is added to (right position of the switch) or subtracted from (left position of the switch) the output."
-  p_ $ toHtml $ pack "The inputs without attenuators are typically used to add control voltages following the 1V/Oct standard."
-  p_ $ toHtml $ pack "Each input is equipped with a 3-position switch that determines if the corresponding voltage is added (right position), subtracted (left position) or if the input has no effect (center position). If no plug is inserted the corresponding switch works as an octave switch as the socket is normalled to +1 V."
-  p_ $ toHtml $ pack "The module has 4 outputs where one is inverted. An internal jumper can be used to connect the non-inverted or inverted output to the CV line of the A-100 bus."
-usage _ = Nothing
-
 type Row = [Module]
 data Case a = Case
   { caseType :: String
@@ -1413,18 +1398,6 @@ instance ToHtml Currents where
     p5 `showAsIntegralIn` milli Ampere <> " @ +5V"
   toHtmlRaw = toHtml
 
-moduleHtml :: Module -> Html ()
-moduleHtml m = do
-    dl_ $ do
-      dt_ "Manufacturer"
-      dd_ $ manufacturerLink $ manufacturer m
-      case url m of
-        Just u -> do
-          dt_ "Web"
-          dd_ $ a_ [href_ $ pack u] (toHtml u)
-        _ -> pure ()
-    maybe (pure ()) (\x -> h2_ "Usage" <> x) $ usage m
- 
 frontPanelHtml :: Module -> Html ()
 frontPanelHtml m = do
   h2_ "Front panel"
