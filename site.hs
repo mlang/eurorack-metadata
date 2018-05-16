@@ -68,6 +68,7 @@ main = hakyllWith config $ do
   match "eurorack/*.yaml" $ do
     route $ setExtension "html"
     compile $ rackCompiler
+          >>= loadAndApplyTemplate "templates/rack.html" postCtx
           >>= loadAndApplyTemplate "templates/default.html" postCtx
           >>= relativizeUrls
 

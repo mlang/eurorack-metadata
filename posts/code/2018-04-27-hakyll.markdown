@@ -2,10 +2,15 @@
 title: Hakyll
 tags: Haskell, Web
 ---
-I recently rediscovered Hakyll
+I recently rediscovered Hakyll.  A very nice static site generator
+written in Haskell.
 
 <!--more-->
 
-While I am pretty happy with Pelican, a statically typed
+While I was pretty happy with Pelican, a statically typed
 language would be preferable.
+i
+And so I tried to use Hakyll to create this little site.
+
+So far, it is a pleasant experience.
 
