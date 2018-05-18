@@ -72,13 +72,6 @@ main = hakyllWith config $ do
           >>= loadAndApplyTemplate "templates/default.html" postCtx
           >>= relativizeUrls
 
-  create ["synth.html"] $ do
-    route idRoute
-    compile $ do
-        makeItem "" >>= applyTemplate synthTemplate postCtx
-                    >>= loadAndApplyTemplate "templates/default.html" postCtx
-                    >>= relativizeUrls
-
   for_ [minBound .. maxBound] $ \mod ->
     create ([fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
@@ -145,11 +138,6 @@ moduleCtx m = constField "title" (show $ fullName m)
     c ["+5V", "mA"] i = case currents m of
       Currents _ _ mA -> pure $ show $ round $ mA # milli Ampere
     c _ i = error $ "current(): missing argument in item " <> show (itemIdentifier i)
-
-synthTemplate :: Template
-synthTemplate = readTemplate . show $ html where
-  html :: Html ()
-  html = p_ "Hello"
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
