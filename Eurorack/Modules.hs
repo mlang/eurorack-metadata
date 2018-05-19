@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
-{-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TypeFamilies, TypeOperators #-}
 module Eurorack.Modules (
   Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name
 ) where
@@ -14,21 +14,18 @@ import Data.Metrology ((%), (#), (|+|), (|*|), (:@), qSum)
 import Data.Metrology.Poly (showIn)
 import Data.Metrology.Show
 import Data.Metrology.SI (Current, ElectricPotential, Power, Length)
-import Data.Metrology.TH (declareDerivedUnit)
 import Data.Semigroup ((<>))
 import Data.Text (Text, intercalate, pack, unpack)
 import Data.Units.SI (Ampere(..), Hour(..), Meter(..), Volt(..), Watt(..))
 import Data.Units.SI.Prefixes (centi, Milli, milli)
-import Data.Units.US (Inch)
 import Data.Yaml
+import Eurorack.Units
 import GHC.Generics
 import Lucid hiding (for_)
 import System.Directory (doesDirectoryExist, createDirectory)
 import System.FilePath ((</>), (<.>))
 import Text.RawString.QQ (r)
 
-declareDerivedUnit "HorizontalPitch" [t| Inch |] 0.2  (Just "HP")
-declareDerivedUnit "RackUnit"        [t| Inch |] 1.75 (Just "U")
 
 mA :: Double -> Current
 mA x = x % milli Ampere

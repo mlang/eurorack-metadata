@@ -29,7 +29,7 @@ dependencies:
 executables:
   site:
     main: site.hs
-    other-modules: Eurorack.Modules
+    other-modules: Eurorack.Modules, Eurorack.Units
     dependencies:
     - bytestring
     - hakyll
