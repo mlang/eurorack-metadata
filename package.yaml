@@ -26,13 +26,10 @@ dependencies:
 - units-defs >= 2.0 && <= 2.1
 - yaml
 
-library:
-  source-dirs: src
-
 executables:
   site:
     main: site.hs
+    other-modules: Eurorack.Modules
     dependencies:
     - bytestring
     - hakyll
-    - eurorack-metadata

@@ -10,13 +10,13 @@ import           Data.Text (unpack)
 import           Data.Units.SI (Ampere(..), Meter(..))
 import           Data.Units.SI.Prefixes (centi, milli)
 import           Data.Yaml
-import           Eurorack.Synthesizers
+import           Eurorack.Modules
 import           Hakyll
 import           Lucid hiding (for_)
 
 main :: IO ()
 main = hakyllWith config $ do
-  let pages = ["about.markdown", "contact.markdown", "eurorack/links.markdown"]
+  let pages = ["about.markdown", "contact.markdown", "Eurorack/links.markdown"]
   match "images/*" $ do
     route   idRoute
     compile copyFileCompiler
@@ -31,10 +31,10 @@ main = hakyllWith config $ do
           >>= loadAndApplyTemplate "templates/default.html" defaultContext
           >>= relativizeUrls
 
-  tags <- buildTags ("posts/**" .||. "eurorack/jams/*") (fromCapture "tags/*.html")
+  tags <- buildTags ("posts/**" .||. "Eurorack/jams/*") (fromCapture "tags/*.html")
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
 
-  match "eurorack/jams/*" $ do
+  match "Eurorack/jams/*" $ do
     route $ setExtension "html"
     compile $ pandocCompiler >>=
               saveSnapshot "content" >>=
@@ -53,7 +53,7 @@ main = hakyllWith config $ do
   match "index.html" $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll ("posts/**" .||. "eurorack/jams/*")
+      posts <- recentFirst =<< loadAll ("posts/**" .||. "Eurorack/jams/*")
       let indexCtx =
               listField "posts" postCtx (return posts) <>
               constField "title" "Home"                <>
@@ -66,7 +66,7 @@ main = hakyllWith config $ do
 
   match "templates/*" $ compile templateBodyCompiler
 
-  match "eurorack/*.yaml" $ do
+  match "Eurorack/*.yaml" $ do
     route $ setExtension "html"
     compile $ rackCompiler
           >>= loadAndApplyTemplate "templates/rack.html" postCtx
@@ -74,7 +74,7 @@ main = hakyllWith config $ do
           >>= relativizeUrls
 
   for_ [minBound .. maxBound] $ \mod ->
-    create ([fromFilePath $ unpack $ "eurorack/modules/" <> identifier mod <> ".markdown"]) $ do
+    create ([fromFilePath $ unpack $ "Eurorack/Modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
       let ctx = moduleCtx mod
       compile $ pandocCompiler >>=
@@ -85,7 +85,7 @@ main = hakyllWith config $ do
   match "jams.html" $ do
     route idRoute
     compile $ do
-      jams <- recentFirst =<< loadAll "eurorack/jams/*"
+      jams <- recentFirst =<< loadAll "Eurorack/jams/*"
       let indexCtx =
               listField "jams" postCtx (return jams) <>
               defaultContext

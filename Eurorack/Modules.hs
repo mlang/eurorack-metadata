@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
-module Eurorack.Synthesizers (
+module Eurorack.Modules (
   Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name
 ) where
 import Control.Applicative ((<|>))
@@ -1350,6 +1350,9 @@ describeSwitches = dl_ . mconcat . toList . fmap desc . frontPanel where
     dd_ $ toHtml $ intercalate ", " x
   desc _ = mempty
 
+moduleLink :: Module -> Html () -> Html ()
+moduleLink mod txt = a_ [href_ ("/Eurorack/Modules/" <> identifier mod <> ".html")] txt
+
 systemHtml :: System -> Html ()
 systemHtml sys = do
     dl_ $ do
@@ -1363,7 +1366,7 @@ systemHtml sys = do
       p_ $ toHtml $ showCaseSize c
       table_ [class_ "case"] $ traverse_ row (rows c)
     h2_ "Known but unused modules"
-    ul_ $ for_ (unused $ modules sys) $ li_ . toHtml . fullName
+    ul_ $ for_ (unused $ modules sys) $ \mod -> li_ (moduleLink mod (fullName mod))
  where
   row :: Row -> Html ()
   row = tr_ . traverse_ cell
