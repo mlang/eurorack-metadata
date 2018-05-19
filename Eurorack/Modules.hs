@@ -840,7 +840,15 @@ f=Write/Next
   , ("15", Button)
   , ("16", Button)
   ]
-frontPanel VScale = UnknownPanel
+frontPanel VScale = ASCIILayoutDiagram [r|
+  Out5
+- Out4
+- Out3
+- Out2
+- Out1
+
+  In
+|] []
 frontPanel Salt = UnknownPanel
 frontPanel SaltPlus = UnknownPanel
 frontPanel DUSeq = UnknownPanel
@@ -860,7 +868,18 @@ G2
 G1    H  L   L
 G2    L  H   L
 Func. LP VCA L+V
-|] []
+|] [("CV-In1", Socket In mini)
+  , ("F/A", Rotary)
+  , ("CV-In2", Socket In mini)
+  , ("CV2", Rotary)
+  , ("AudioIn", Socket In mini)
+  , ("Lev.", Rotary)
+  , ("AudioOut", Socket Out mini)
+  , ("Res.", Rotary)
+  , ("LP/VCA", Switch ["LP", "LP+VCA", "VCA"])
+  , ("G1", Socket In mini)
+  , ("G2", Socket In mini)
+  ]
 frontPanel A103 = UnknownPanel
 frontPanel A106_6 = ASCIILayoutDiagram [r|
                         3A-1L
@@ -1003,13 +1022,13 @@ frontPanel A120 = Tabular [
   , [Just ("AudioIn", Socket In mini), Just ("Lev.", Rotary)]
   , [Just ("AudioOut", Socket Out mini), Just ("Res.", Rotary)]
   ]
-frontPanel A124 = ASCIILayoutDiagram [r|
-  AudioIn  Lev.
-  CV1      Frq.
-  CV2      CV2
-  BPOut    Res.
-  LP/HPOut Mix
-|] []
+frontPanel A124 = Tabular [
+    [Just ("AudioIn", Socket In mini), Just ("Lev.", Rotary)]
+  , [Just ("CV1", Socket In mini), Just ("Frq.", Rotary)]
+  , [Just ("CV2", Socket In mini), Just ("CV2", Rotary)]
+  , [Just ("BPOut", Socket Out mini), Just ("Res.", Rotary)]
+  , [Just ("LP/HPOut", Socket Out mini), Just ("Mix", Rotary)]
+  ]
 frontPanel A130 = Tabular [
     [Just ("CV1", Socket In mini), Just ("Gain", Rotary)]
   , [Just ("CV2", Socket In mini), Just ("CV2", Rotary)]
@@ -1022,13 +1041,13 @@ frontPanel A132_3 = Tabular $ concat $ replicate 2 [
     [Just ("CV-In", Socket In mini), Just ("CV", Rotary)]
   , [Just ("In", Socket In mini), Just ("Gain", Rotary)]
   , [Just ("Out", Socket Out mini), Just ("Lin./Exp.", Switch ["Lin.", "Exp."])]]
-frontPanel A136 = ASCIILayoutDiagram [r|
-Input           +A
-Ext.Level       +L
-                A
-Ext.Level       -L
-Output          -A
-|] []
+frontPanel A136 = Tabular [
+    [Just ("Input", Socket In mini), Just ("+A", Rotary)]
+  , [Just ("Ext.Level", Socket In mini), Just ("+L", Rotary)]
+  , [Nothing, Just ("A", Rotary)]
+  , [Just ("Ext.Level", Socket In mini), Just ("-L", Rotary)]
+  , [Just ("Output", Socket Out mini), Just ("-A", Rotary)]
+  ]
 frontPanel A138a = Tabular [
     [Just ("Input1", Socket In mini), Just ("In1", Rotary)]
   , [Just ("Input2", Socket In mini), Just ("In2", Rotary)]
@@ -1279,7 +1298,14 @@ Inv                    Div/Mult-Att
 CV                     Mode
     CV-Att  Gate-PW
 Inv                    Div/Mult-Att
-|] []
+|] $ concat $ replicate 4 [
+    ("CV", Socket In mini)
+  , ("Inv", Socket Out mini)
+  , ("CV-Att", Rotary)
+  , ("Gate-PW", Rotary)
+  , ("Mode", Switch ["?", "?", "?"])
+  , ("Div/Mult-Att", Rotary)
+  ]
 frontPanel SubMix = let row c = map (\n -> Just (c <> pack (show n), Rotary)) [1..3]
                              <> [Nothing]
                              <> map (\n -> Just (c <> pack (show n), Socket In mini)) [1..3]
@@ -1354,7 +1380,28 @@ Harmonic          Skin/Liquid/Metal
 Pitch         Attack   S/L/M
 Spread  Morph  Decay   B/A/T
 Harm    Fold    Trig    Out
-|] []
+|] [("Pitch", Rotary)
+  , ("Attack", Rotary)
+  , ("Spread", Rotary)
+  , ("Morph", Rotary)
+  , ("Decay", Rotary)
+  , ("Harmonic", Rotary)
+  , ("Fold", Rotary)
+  , ("S/L/M", Switch ["Skin", "Liquid", "Metal"])
+  , ("B/A/T", Switch ["Bass", "Alto", "Treble"])
+  , ("Trig", Button)
+  , ("Pitch", Socket In mini)
+  , ("Attack", Socket In mini)
+  , ("S/L/M", Socket In mini)
+  , ("Spread", Socket In mini)
+  , ("Morph", Socket In mini)
+  , ("Decay", Socket In mini)
+  , ("B/A/T", Socket In mini)
+  , ("Harmonic", Socket In mini)
+  , ("Fold", Socket In mini)
+  , ("Trig", Socket In mini)
+  , ("Out", Socket Out mini)
+  ]
 frontPanel Mixer = ASCIILayoutDiagram [r|
 In1
       Level1

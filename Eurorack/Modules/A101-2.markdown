@@ -1,4 +1,5 @@
 ---
 homepage: http://www.doepfer.de/a1012.htm
+schneidersladen: doepfer-a-101-2-vactrol-lowpass-gate.html
 ---
 

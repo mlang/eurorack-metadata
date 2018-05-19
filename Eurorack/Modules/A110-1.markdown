@@ -1,5 +1,6 @@
 ---
 homepage: http://www.doepfer.de/a110.htm
+schneidersladen: doepfer-a-110-standard-vco.html
 ---
 ## Usage
 
