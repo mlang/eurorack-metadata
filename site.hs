@@ -159,4 +159,4 @@ lengthField k l = functionField k f where
   f ["HP"] i = pure $ show $ round $ l # HorizontalPitch
   f ["U"] i = pure $ show $ round $ l # RackUnit
   f [] i = f ["HP"] i
-  f _ i = error $ "width(): Unsupported unit in item " <> show (itemIdentifier i)
+  f _ i = error $ k <> "(): Unsupported unit in item " <> show (itemIdentifier i)

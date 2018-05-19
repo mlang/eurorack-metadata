@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TypeFamilies, TypeOperators #-}
 module Eurorack.Modules (
   Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name
@@ -138,7 +139,7 @@ identifier ATC = pack "ATC"
 identifier PerformanceMixer = "PerformanceMixer"
 
 instance FromJSON Module where
-  parseJSON (String s) = foldr (<|>) failed $ map check [minBound .. maxBound] where
+  parseJSON (String s) = foldr ((<|>) . check) failed [minBound .. maxBound] where
     check mod = do
       guard $ identifier mod == s
       pure mod
@@ -413,13 +414,11 @@ synopsis A101_2 = Just $ do
   p_ "The function of the module is controlled by a manual switch. The left and right positions of the switch correspond to LP resp. VCA mode. In the middle position one obtains the combination of Low Pass and VCA. In this position it is also possible to control the function of the module by the two Gate inputs G1 and G2. The table printed at the front panel shows the connection between the gate levels (L = low, H = high) and the module function."
 
 synopsis A103 = Just $ p_ $ toHtml $ pack "The circuit is based on a modified transistor ladder (Moog ladder) and is a reproduction of the legendary TB303 filter."
-synopsis A106_6 = Just $ do
-  p_ $ do
-    toHtml (pack "A multimode filter based on the filter circuit of the ")
+synopsis A106_6 = Just $ p_ $ do
+    toHtml $ pack "A multimode filter based on the filter circuit of the "
     a_ [href_ $ pack "https://en.wikipedia.org/wiki/Oberheim_Xpander"] $ toHtml (pack "Oberheim Xpander")
     toHtml (pack ". The module features 15 different filter types with 8 filters available simultaneously. The toggle switch Filter Group is used to switch between 2 filter groups.")
-synopsis A110_1 = Just $ do
-  p_ "A voltage controlled oscillator with a frequency range of about eight octaves (ca. 15Hz ... 8kHz). It can produce four waveforms simultaneously: rectangle, sawtooth, triangle, and sine wave. The output levels are typically 8Vpp for saw and rectangle, and 10Vpp for triangle and sine."
+synopsis A110_1 = Just $ p_ $ toHtml $ pack "A voltage controlled oscillator with a frequency range of about eight octaves (ca. 15Hz ... 8kHz). It can produce four waveforms simultaneously: rectangle, sawtooth, triangle, and sine wave. The output levels are typically 8Vpp for saw and rectangle, and 10Vpp for triangle and sine."
 synopsis A111_4 = Just $ p_ $ toHtml $ pack "Four precision VCOs with individual controls, inputs and outputs as well as a common control and output unit."
 synopsis A114 = Just $ p_ $ toHtml $ pack "Two individual ring modulator units with X and Y input and X*Y output sockets per unit."
 synopsis A115 = Nothing
@@ -430,14 +429,13 @@ synopsis A120 = Nothing
 synopsis A124 = Nothing
 synopsis A130 = Nothing
 synopsis A131 = Nothing
-synopsis A132_3 = Just $ p_ $ toHtml $ pack $ "Two identical voltage controlled amplifiers (VCA). Each VCA has a manual gain control and a control voltage input with attenuator. The character of the control scale can be switched to linear or exponential. All inputs and outputs are DC coupled. Consequently the VCAs can be used to process both audio and control voltages. The input has no attenuator available but is capable to process up to 16Vss signals (i.e. -8V...+8V) without distortion."
+synopsis A132_3 = Just $ p_ $ toHtml $ pack "Two identical voltage controlled amplifiers (VCA). Each VCA has a manual gain control and a control voltage input with attenuator. The character of the control scale can be switched to linear or exponential. All inputs and outputs are DC coupled. Consequently the VCAs can be used to process both audio and control voltages. The input has no attenuator available but is capable to process up to 16Vss signals (i.e. -8V...+8V) without distortion."
 synopsis A136 = Nothing
 synopsis A138a = Nothing
 synopsis A138b = Nothing
 synopsis A138m = Nothing
 synopsis A138s = Nothing
-synopsis A140 = Just $ do
-  p_ "An (ADSR) envelope generator.  The shape of the envelope is governed by four parameters: Attack, Decay, Sustain and Release."
+synopsis A140 = Just $ p_ $ toHtml $ pack "An (ADSR) envelope generator.  The shape of the envelope is governed by four parameters: Attack, Decay, Sustain and Release."
 synopsis A143_2 = Nothing
 synopsis A143_9 = Nothing
 synopsis A145 = Nothing
@@ -673,6 +671,29 @@ data FrontPanel e = UnknownPanel
                   | ASCIILayoutDiagram Text [e]
                   deriving (Foldable, Functor, Eq)
 
+data FPECount = FPECount { buttons, rotaries, sockets, switches :: Int } deriving (Eq, Show)
+instance Monoid FPECount where
+  FPECount a b c d `mappend` FPECount a' b' c' d' = FPECount (a + a') (b + b') (c + c') (d + d')
+  mempty = FPECount 0 0 0 0
+instance ToHtml FPECount where
+  toHtml (FPECount {..}) = do 
+    toHtml $ show buttons
+    toHtml $ pack " buttons, "
+    toHtml $ show rotaries
+    toHtml $ pack " rotaries, "
+    toHtml $ show sockets
+    toHtml $ pack " sockets, "
+    toHtml $ show switches
+    toHtml $ pack " switches."
+
+countFrontPanelElements :: Foldable f => f Module -> FPECount
+countFrontPanelElements = foldMap (foldMap go . frontPanel) where
+  go (_, Button) = FPECount 1 0 0 0
+  go (_, Rotary) = FPECount 0 1 0 0
+  go (_, Socket _ _) = FPECount 0 0 1 0
+  go (_, Switch _) = mempty { switches = 1 }
+  go _ = mempty
+
 data FrontPanelElement = Button
                        | LED
                        | Rotary
@@ -739,7 +760,35 @@ VCF-In  Cutoff     Res     VCA-In
 Gate-In Env-Mod    Decay   Env-Out
              Gate/VCA
 Acc-In  Acc        Volume  Out
-|] []
+|] [("CV-In", Socket In mini)
+  , ("Slide-In", Socket In mini)
+  , ("Tune", Rotary)
+  , ("VCO-Out", Socket Out mini)
+
+  , ("Saw/Sq", Switch ["Saw", "Square"])
+
+  , ("VCO-CV", Socket In mini)
+  , ("VCO-Mod", Rotary)
+  , ("VCF-Mod", Rotary)
+  , ("VCF-CV", Socket In mini)
+
+  , ("VCF-In", Socket In mini)
+  , ("Cutoff", Rotary)
+  , ("Res", Rotary)
+  , ("VCA-In", Socket In mini)
+
+  , ("Gate-In", Socket In mini)
+  , ("Env-Mod", Rotary)
+  , ("Decay", Rotary)
+  , ("Env-Out", Socket Out mini)
+
+  , ("Gate/VCA", Switch ["Gate", "VCA"])
+
+  , ("Acc-In", Socket In mini)
+  , ("Acc", Rotary)
+  , ("Volume", Rotary)
+  , ("Out", Socket Out mini)
+  ]
 frontPanel Robokop = ASCIILayoutDiagram [r|
  b      c       d                                     e           f
 
@@ -751,7 +800,46 @@ c=Inst./Sel.
 d=Leng./Shuf.
 e=Clear
 f=Write/Next
-|] []
+|] [("1", Socket Out mini)
+  , ("2", Socket Out mini)
+  , ("3", Socket Out mini)
+  , ("4", Socket Out mini)
+  , ("5", Socket Out mini)
+  , ("6", Socket Out mini)
+  , ("7", Socket Out mini)
+  , ("8", Socket Out mini)
+  , ("9", Socket Out mini)
+  , ("10", Socket Out mini)
+  , ("11", Socket Out mini)
+  , ("12", Socket Out mini)
+  , ("Tempo", Rotary)
+  , ("Prog", RotarySwitch $ map (pack . show) [1..12])
+  , ("Mode", RotarySwitch [ "Track write", "Track play", "Pattern play",
+                             "Tap write", "Step write", "Pattern play" ])
+  , ("Slide", Rotary)
+  , ("Scale", Button)
+  , ("Inst./Sel.", Button)
+  , ("Leng./Shuf.", Button)
+  , ("Clear", Button)
+  , ("Next/Write", Button)
+  , ("Start/Stop", Button)
+  , ("1", Button)
+  , ("2", Button)
+  , ("3", Button)
+  , ("4", Button)
+  , ("5", Button)
+  , ("6", Button)
+  , ("7", Button)
+  , ("8", Button)
+  , ("9", Button)
+  , ("10", Button)
+  , ("11", Button)
+  , ("12", Button)
+  , ("13", Button)
+  , ("14", Button)
+  , ("15", Button)
+  , ("16", Button)
+  ]
 frontPanel VScale = UnknownPanel
 frontPanel Salt = UnknownPanel
 frontPanel SaltPlus = UnknownPanel
@@ -790,7 +878,25 @@ QCV            QCV      2B
                         4L
 Filtergrp      Q
                         2L
-|] []
+|] [("Audio-In", Socket In mini)
+  , ("FCV1", Socket In mini)
+  , ("FCV2", Socket In mini)
+  , ("QCV", Socket In mini)
+  , ("Filtergrp", Switch ["Group 1", "Group 2"])
+  , ("Lev.", Rotary)
+  , ("Frq.", Rotary)
+  , ("FCV", Rotary)
+  , ("QCV", Rotary)
+  , ("Q", Rotary)
+  , ("3A-1L", Socket Out mini)
+  , ("2N-1L", Socket Out mini)
+  , ("4B", Socket Out mini)
+  , ("3H-1L", Socket Out mini)
+  , ("2H-1L", Socket Out mini)
+  , ("2B", Socket Out mini)
+  , ("4L", Socket Out mini)
+  , ("2L", Socket Out mini)
+  ]
 frontPanel A110_1 = ASCIILayoutDiagram [r|
 SYNC     Range
 CV1      Tune
@@ -798,8 +904,7 @@ CV2      CV2
 PW-CV1   PW
 PW-CV2   PW-CV2
 Saw  Sqr  Tri  Sin
-|] [
-    ("Sync", Socket In mini)
+|] [("Sync", Socket In mini)
   , ("Range", RotarySwitch $ map (pack . show) [0..9])
   , ("CV1", Socket In mini)
   , ("Tune", Rotary)
@@ -834,7 +939,29 @@ Mod           XM/LM|PM           Saw  Snc
 1V  +/-                          Tri  Sq
         Tune         ModLevel
 XM                               Saw  CVOut
-|] []
+|] $ concat (replicate 4 [
+    ("1V", Socket In mini)
+  , ("+/-", Switch ["-1", "0", "+1"])
+  , ("Tri", Socket Out mini)
+  , ("Sq", Socket Out mini)
+  , ("Tune", Rotary)
+  , ("ModLevel", Rotary)
+  , ("Mod", Socket In mini)
+  , ("XM/LM|PM", Switch ["XM", "LM", "PM"])
+  , ("Saw", Socket Out mini)
+  , ("Sync", Socket In mini)
+  ]) <> [
+    ("1V", Socket In mini)
+  , ("+/-", Switch ["-1", "0", "+1"])
+  , ("Tri", Socket Out mini)
+  , ("Sq", Socket Out mini)
+  , ("Tune", Rotary)
+  , ("ModLevel", Rotary)
+  , ("XM", Socket In mini)
+  , ("Saw", Socket Out mini)
+  , ("CVOut", Socket Out mini)
+  ]
+
 frontPanel A114 = let g = [ [Just ("X-In", Socket In mini)]
                           , [Just ("Y-In", Socket In mini)]
                           , [Just ("X*Y-Out", Socket Out mini)]
@@ -869,13 +996,13 @@ Envelope-Out  ,
               ,
 Gate-Out      Thresh.
 |] []
-frontPanel A120 = ASCIILayoutDiagram [r|
-CV1             Frq.
-CV2             CV2
-CV3             CV3
-AudioIn         Lev.
-AudioOut        Res.
-|] []
+frontPanel A120 = Tabular [
+    [Just ("CV1", Socket In mini), Just ("Frq.", Rotary)]
+  , [Just ("CV2", Socket In mini), Just ("CV2", Rotary)]
+  , [Just ("CV3", Socket In mini), Just ("CV3", Rotary)]
+  , [Just ("AudioIn", Socket In mini), Just ("Lev.", Rotary)]
+  , [Just ("AudioOut", Socket Out mini), Just ("Res.", Rotary)]
+  ]
 frontPanel A124 = ASCIILayoutDiagram [r|
   AudioIn  Lev.
   CV1      Frq.
@@ -935,7 +1062,19 @@ G    R  m/l/h
 RT   A   D
                 Attack Decay Sutain Release   Out
 G    R  m/l/h
-|] []
+|] $ concat $ replicate 4 [
+    ("RT", Socket In mini)
+  , ("G", Socket In mini)
+  , ("A", Socket Out mini)
+  , ("D", Socket Out mini)
+  , ("R", Socket Out mini)
+  , ("m/l/h", Switch ["m", "l", "h"])
+  , ("Attack", Rotary)
+  , ("Decay", Rotary)
+  , ("Sustain", Rotary)
+  , ("Release", Rotary)
+  , ("Out", Socket Out mini)
+  ]
 frontPanel A143_9 = ASCIILayoutDiagram [r|
 CV1    Frq.
 CV2    CV2
@@ -1064,9 +1203,14 @@ Time-Range      CURSOR_DOWN
 Out             , ,
 |] []
 frontPanel A177_2 = UnknownPanel
-frontPanel A180_1 = UnknownPanel
-frontPanel A180_2 = UnknownPanel
-frontPanel A180_3 = UnknownPanel
+frontPanel A180_1 = Tabular $ replicate 8 [Just ("I/O", Socket InOrOut mini)]
+frontPanel A180_2 = frontPanel A180_1
+frontPanel A180_3 = Tabular $ concat $ replicate 2 [
+    [Just ("In", Socket In mini)]
+  , [Just ("Out1", Socket Out mini)]
+  , [Just ("Out2", Socket Out mini)]
+  , [Just ("Out3", Socket Out mini)]
+  ]
 frontPanel A182_1 = UnknownPanel
 frontPanel A184_1 = UnknownPanel
 frontPanel A185_2 = ASCIILayoutDiagram [r|
@@ -1110,7 +1254,15 @@ Div/Mult  Reset
                        CLK-In
           DIV/Mult-CV  CLK-Out
 Div/Mult  Reset
-|] []
+|] $ [("Tap", Button)
+    , ("Tap-Out", Socket Out mini)
+    ] <> concat (replicate 4 [
+      ("CLK-In", Socket In mini)
+    , ("CLK-Out", Socket Out mini)
+    , ("Div/Mult-CV", Socket In mini)
+    , ("Reset", Socket In mini)
+    , ("Div/Mult", RotarySwitch ["/32", "/16", "/8", "/7", "/6", "/5", "/4", "/3", "/2", "=", "*2", "*3", "*4", "*5", "*6", "*7", "*8", "*16", "*16"])
+    ])
 frontPanel QCDExp = ASCIILayoutDiagram [r|
 CV                     Mode
     CV-Att  Gate-PW
@@ -1213,7 +1365,7 @@ Out2
 In3
       Level3
 Out3
-Int4
+In4
       Level4
 MixOut
 |] []
@@ -1228,15 +1380,15 @@ FCV2    QCV2     GCV2     SCV2
 In                        Out
 |] []
 frontPanel CP909 = UnknownPanel
-frontPanel Hats808 = ASCIILayoutDiagram [r|
- Level     Level
- Q         VCQ
- Decay     BPOut
- Accent    Accent
- AccentIn  AccentIn
- GateIn    GateIn
- OHOut     CHOut
-|] []
+frontPanel Hats808 = Tabular [
+    [Just ("Level", Rotary), Just ("Level", Rotary)]
+  , [Just ("Q", Rotary), Just ("QCV", Socket In mini)]
+  , [Just ("Decay", Rotary), Just ("BPOut", Socket Out mini)]
+  , [Just ("Accent", Rotary), Just ("Accent", Rotary)]
+  , [Just ("AccentIn", Socket In mini), Just ("AccentIn", Socket In mini)]
+  , [Just ("GateIn", Socket In mini), Just ("GateIn", Socket In mini)]
+  , [Just ("OHOut", Socket Out mini), Just ("CHOut", Socket Out mini)]
+  ]
 frontPanel One = ASCIILayoutDiagram [r|
 Lev.
 Play
@@ -1272,7 +1424,19 @@ Cutoff       Amp
 Resonance
     FreqCV  ExpCV  LinCV
 In  FreqCV  ExpCV  LinCV  Out
-|] []
+|] [("Gain", Rotary)
+  , ("Cutoff", Rotary)
+  , ("Resonance", Rotary)
+  , ("Amp", Rotary)
+  , ("FreqCV", Rotary)
+  , ("ExpCV", Rotary)
+  , ("LinCV", Rotary)
+  , ("In", Socket In mini)
+  , ("FreqCV", Socket In mini)
+  , ("ExpCV", Socket In mini)
+  , ("LinCV", Socket In mini)
+  , ("Out", Socket Out mini)
+  ]
 frontPanel PerformanceMixer = UnknownPanel
 
 type Row = [Module]
@@ -1348,7 +1512,7 @@ describeSwitches = dl_ . mconcat . toList . fmap desc . frontPanel where
   desc _ = mempty
 
 moduleLink :: Module -> Html () -> Html ()
-moduleLink mod txt = a_ [href_ ("/Eurorack/Modules/" <> identifier mod <> ".html")] txt
+moduleLink mod = a_ [href_ ("/Eurorack/Modules/" <> identifier mod <> ".html")]
 
 systemHtml :: System -> Html ()
 systemHtml sys = do
@@ -1359,6 +1523,8 @@ systemHtml sys = do
         toHtml $ pack " ("
         toHtml (powerOfCurrents (systemCurrents sys) `showAsIntegralIn` Watt)
         toHtml $ pack ")"
+      dt_ "Controls"
+      dd_ $ toHtml $ countFrontPanelElements $ modules sys
     for_ sys $ \c -> do
       p_ $ toHtml $ showCaseSize c
       table_ [class_ "case"] $ traverse_ row (rows c)
@@ -1370,7 +1536,7 @@ systemHtml sys = do
   cell :: Module -> Html ()
   cell m = td_ [colspan_ $ pack $ show $ round $ width m # HorizontalPitch] $
     unless (isBlindPanel m) $
-      a_ ([href_ $ "/eurorack/modules/" <> identifier m <> ".html"] <> maybe [] (\x -> [title_ x]) (description m)) (toHtml $ identifier m)
+      a_ ([href_ $ "/Eurorack/Modules/" <> identifier m <> ".html"] <> maybe [] (\x -> [title_ x]) (description m)) (toHtml $ identifier m)
 
 modules :: System -> [Module]
 modules = nub . filter (not . isBlindPanel) . concatMap toList
