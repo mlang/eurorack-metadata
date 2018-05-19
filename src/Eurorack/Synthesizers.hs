@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TemplateHaskell, TypeFamilies, TypeOperators #-}
 module Eurorack.Synthesizers (
-  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, url, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml
+  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)
@@ -433,7 +433,7 @@ synopsis A120 = Nothing
 synopsis A124 = Nothing
 synopsis A130 = Nothing
 synopsis A131 = Nothing
-synopsis A132_3 = Nothing
+synopsis A132_3 = Just $ p_ $ toHtml $ pack $ "Two identical voltage controlled amplifiers (VCA). Each VCA has a manual gain control and a control voltage input with attenuator. The character of the control scale can be switched to linear or exponential. All inputs and outputs are DC coupled. Consequently the VCAs can be used to process both audio and control voltages. The input has no attenuator available but is capable to process up to 16Vss signals (i.e. -8V...+8V) without distortion."
 synopsis A136 = Nothing
 synopsis A138a = Nothing
 synopsis A138b = Nothing
@@ -894,14 +894,10 @@ frontPanel A130 = Tabular [
   , [Just ("AudioOut", Socket In mini), Just ("Out", Rotary)]
   ]
 frontPanel A131 = frontPanel A130
-frontPanel A132_3 = ASCIILayoutDiagram [r|
-CV-In   CV
-In      Gain
-Out     lin./exp.
-CV-In   CV
-In      Gain
-Out     lin./exp.
-|] []
+frontPanel A132_3 = Tabular $ concat $ replicate 2 [
+    [Just ("CV-In", Socket In mini), Just ("CV", Rotary)]
+  , [Just ("In", Socket In mini), Just ("Gain", Rotary)]
+  , [Just ("Out", Socket Out mini), Just ("Lin./Exp.", Switch ["Lin.", "Exp."])]]
 frontPanel A136 = ASCIILayoutDiagram [r|
 Input           +A
 Ext.Level       +L
@@ -1282,83 +1278,6 @@ In  FreqCV  ExpCV  LinCV  Out
 |] []
 frontPanel PerformanceMixer = UnknownPanel
 
-url Autobot = Nothing
-url M303 = Nothing
-url Robokop = Nothing
-url VScale = Just "http://www.ajhsynth.com/V-Scale.html"
-url Salt = Just "https://blog.bela.io/2018/05/02/salt-a-programmable-eurorack-syntesizer/"
-url SaltPlus = url Salt
-url DUSeq = Nothing
-url A100_bl2 = Nothing
-url A100_bl4 = Nothing
-url A100_bl8 = Nothing
-url A100_bl42 = Nothing
-url A101_2 = Just "http://www.doepfer.de/a1012.htm"
-url A103 = Nothing
-url A106_6 = Just "http://www.doepfer.de/a1066.htm"
-url A110_1 = Just "http://www.doepfer.de/a110.htm"
-url A111_4 = Nothing
-url A114 = Nothing
-url A115 = Nothing
-url A116 = Nothing
-url A118 = Nothing
-url A119 = Nothing
-url A120 = Nothing
-url A124 = Nothing
-url A130 = Nothing
-url A131 = Nothing
-url A132_3 = Nothing
-url A136 = Nothing
-url A138a = Nothing
-url A138b = Nothing
-url A138m = Nothing
-url A138s = Nothing
-url A140 = Nothing
-url A143_2 = Nothing
-url A143_9 = Nothing
-url A145 = Nothing
-url A146 = Nothing
-url A148 = Nothing
-url A151 = Just "http://www.doepfer.de/a151.htm"
-url A152 = Just "http://www.doepfer.de/a152.htm"
-url A156 = Nothing
-url A160 = Nothing
-url A160_5 = Nothing
-url A161 = Nothing
-url A162 = Nothing
-url A166 = Nothing
-url A170 = Nothing
-url A177_2 = Just "http://www.doepfer.de/a1772.htm"
-url A180_1 = Just "http://www.doepfer.de/a180.htm"
-url A180_2 = url A180_1
-url A180_3 = Just "http://www.doepfer.de/a1803.htm"
-url A182_1 = Just "http://www.doepfer.de/a182.htm"
-url A184_1 = Just "http://www.doepfer.de/a1841.htm"
-url A185_2 = Just "http://www.doepfer.de/a1852.htm"
-url A190_4 = Just "http://www.doepfer.de/a1904.htm"
-url DLD = Just "http://www.4mspedals.com/dld.php"
-url QCD = Just "http://www.4mspedals.com/qcd.php"
-url QCDExp = Just "http://www.4mspedals.com/qcdexp.php"
-url SubMix = Nothing
-url DPO = Nothing
-url ErbeVerb = Nothing
-url Maths = Just "http://www.makenoisemusic.com/modules/maths"
-url STO = Nothing
-url Branches = Just "https://mutable-instruments.net/modules/branches/"
-url Grids = Just "https://mutable-instruments.net/modules/grids/"
-url BIA = Nothing
-url Mixer = Nothing
-url Outs = Nothing
-url Evolution = Nothing
-url CP909 = Nothing
-url Hats808 = Nothing
-url One = Nothing
-url RS808 = Nothing
-url SD808 = Nothing
-url CO = Just "http://www.verboselectronics.com/modules/"
-url ATC = Just "http://www.verboselectronics.com/modules/"
-url PerformanceMixer = Just "https://wmdevices.com/products/performance-mixer"
-
 type Row = [Module]
 data Case a = Case
   { caseType :: String
@@ -1425,6 +1344,9 @@ describeSwitches = dl_ . mconcat . toList . fmap desc . frontPanel where
   desc :: (Label, FrontPanelElement) -> Html ()
   desc (n, RotarySwitch x) = do
     dt_ $ toHtml $ n <> pack " (rotary switch, clockwise)"
+    dd_ $ toHtml $ intercalate ", " x
+  desc (n, Switch x) = do
+    dt_ $ toHtml $ n <> pack " (switch)"
     dd_ $ toHtml $ intercalate ", " x
   desc _ = mempty
 

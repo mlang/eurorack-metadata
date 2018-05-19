@@ -16,6 +16,7 @@ import           Lucid hiding (for_)
 
 main :: IO ()
 main = hakyllWith config $ do
+  let pages = ["about.markdown", "contact.markdown", "eurorack/links.markdown"]
   match "images/*" $ do
     route   idRoute
     compile copyFileCompiler
@@ -24,7 +25,7 @@ main = hakyllWith config $ do
     route   idRoute
     compile compressCssCompiler
 
-  match (fromList ["about.markdown", "contact.markdown", "eurorack/links.markdown"]) $ do
+  match (fromList pages) $ do
     route   $ setExtension "html"
     compile $ pandocCompiler
           >>= loadAndApplyTemplate "templates/default.html" defaultContext
@@ -124,8 +125,7 @@ postCtx = teaserField "teaser" "content"
 
 moduleCtx :: Module -> Context String
 moduleCtx m = constField "title" (show $ fullName m)
-           <> mconcat (catMaybes [constField "synopsis" . show <$> synopsis m,
-                                 constField "homepage" . unpack <$> url m])
+           <> mconcat (catMaybes [constField "synopsis" . show <$> synopsis m])
            <> functionField "current" c
            <> lengthField "width" (width m)
            <> constField "frontPanel" (show $ frontPanelHtml m)

@@ -1,3 +1,6 @@
+---
+homepage: http://www.doepfer.de/a1852.htm
+---
 ## Usage
 
 The input with attenuator can be used for modulations. The Lev.1 control is used to
