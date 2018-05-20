@@ -1,0 +1,4 @@
+---
+manufacturers: Rossum Eletro-Music
+---
+
