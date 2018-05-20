@@ -2,7 +2,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TypeFamilies, TypeOperators #-}
 module Eurorack.Modules (
-  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name
+  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name, height
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)

@@ -89,7 +89,6 @@ main = hakyllWith config $ do
       modules <- loadAll ("Eurorack/Modules/*")
       let indexCtx =
               listField "modules" moduleCtx (return modules) <>
-              constField "title" "List of documented modules"                <>
               defaultContext
 
       getResourceBody
@@ -140,11 +139,12 @@ postCtx = teaserField "teaser" "content"
 
 moduleCtx :: Context String
 moduleCtx = moduleTitleField "title"
-           <> moduleSynopsisField "synopsis"
-           <> currentField "current"
-           <> widthField "width"
-           <> moduleFrontPanelField "frontPanel"
-           <> defaultContext
+         <> moduleSynopsisField "synopsis"
+         <> moduleCurrentField "current"
+         <> moduleLengthField "width" width
+         <> moduleLengthField "height" height
+         <> moduleFrontPanelField "frontPanel"
+         <> defaultContext
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
@@ -166,14 +166,16 @@ maybeModule item = let ident = takeBaseName $ toFilePath $ itemIdentifier item i
                    lookup ident $
                    map (\mod -> (unpack $ identifier mod, mod)) [minBound .. maxBound]
 
-
 moduleFieldWith :: String -> (Module -> Compiler String) -> Context a
 moduleFieldWith key f = field key $ \item ->
   maybe (fail $ "moduleFieldWith: Can't find module in " <> show (itemIdentifier item))
         f $ maybeModule item
 
 moduleTitleField :: String -> Context String
-moduleTitleField key = moduleFieldWith key (return . show . fullName)
+moduleTitleField key = moduleFieldWith key (pure . show . fullName)
+
+moduleNameField :: String -> Context String
+moduleNameField key = moduleFieldWith key (pure . show . toHtml . name)
 
 moduleSynopsisField :: String -> Context String
 moduleSynopsisField key = moduleFieldWith key $ \mod ->
@@ -187,15 +189,16 @@ moduleFunctionField key f = functionField key go where
   go args item = maybe (error $ "moduleFunctionField: Can't find module in " <> show (itemIdentifier item))
                        (flip f args) $ maybeModule item
 
-widthField :: String -> Context String
-widthField key = moduleFunctionField key f where
-  f mod ["HP"] = pure . show . round $ width mod # HorizontalPitch
-  f mod ["U"] = pure . show . round $ width mod # RackUnit
-  f mod [] = f mod ["HP"]
-  f mod _ = error $ "width(): Unsupported arguments"
+moduleLengthField :: String -> (Module -> Length) -> Context String
+moduleLengthField key f = moduleFunctionField key go where
+  go mod ["HP"] = pure . show . round $ f mod # HorizontalPitch
+  go mod ["U"] = pure . show . round $ f mod # RackUnit
+  go mod ["mm"] = pure . show . round $ f mod # milli Meter
+  go mod [] = go mod ["HP"]
+  go mod _ = error $ "width(): Unsupported arguments"
 
-currentField :: String -> Context String
-currentField key = moduleFunctionField key f where
+moduleCurrentField :: String -> Context String
+moduleCurrentField key = moduleFunctionField key f where
   f mod ["+12V", "mA"] = let Currents mA _ _ = currents mod in
                          pure . show . round $ mA # milli Ampere
   f mod ["-12V", "mA"] = let Currents _ mA _ = currents mod in
@@ -204,10 +207,3 @@ currentField key = moduleFunctionField key f where
                          pure . show . round $ mA # milli Ampere
   f mod [k] = f mod [k, "mA"]
   f mod _ = error $ key <> "(): Unsupported arguments"
-
-lengthField :: String -> Length -> Context String
-lengthField k l = functionField k f where
-  f ["HP"] i = pure $ show $ round $ l # HorizontalPitch
-  f ["U"] i = pure $ show $ round $ l # RackUnit
-  f [] i = f ["HP"] i
-  f _ i = error $ k <> "(): Unsupported unit in item " <> show (itemIdentifier i)
