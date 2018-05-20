@@ -92,9 +92,10 @@ main = hakyllWith config $ do
     route idRoute
     compile $ do
       modules <- loadAll ("Eurorack/Modules/*")
-      let indexCtx =
-              listField "modules" moduleCtx (pure modules) <>
-              defaultContext
+      let indexCtx = listField "modules" moduleCtx (pure modules)
+                  <> field "manufacturers" (const $ renderTagList manufacturers)
+                  <> tagCloudField "features" 70 150 provides
+                  <> defaultContext
 
       getResourceBody
         >>= applyAsTemplate indexCtx

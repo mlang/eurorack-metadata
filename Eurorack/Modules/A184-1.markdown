@@ -1,5 +1,6 @@
 ---
 manufacturers: Döpfer
+provides: Ring modulator, Sample and Hold, Track and Hold, Slew limiter
 homepage: http://www.doepfer.de/a1841.htm
 ---
 

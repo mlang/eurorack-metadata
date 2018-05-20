@@ -1,5 +1,5 @@
 ---
 manufacturers: Make Noise
-provides: Reverb
+provides: Reverb, Stereo
 ---
 

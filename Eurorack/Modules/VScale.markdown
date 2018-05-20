@@ -1,7 +1,7 @@
 ---
 manufacturers: AJH Synth
 homepage: http://www.ajhsynth.com/V-Scale.html
-provides: Buffered multiple
+provides: Buffered Multiple
 ---
 ## Usage
 

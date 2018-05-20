@@ -1,5 +1,5 @@
 ---
 manufacturers: Döpfer
-provides: Slew Limiter
+provides: Slew limiter
 ---
 
