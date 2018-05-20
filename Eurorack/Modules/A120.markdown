@@ -1,4 +1,5 @@
 ---
 manufacturers: Döpfer
+provides: LPF
 ---
 

@@ -1,3 +1,8 @@
+$if(provides)$
+  <div class="provides">
+    Provides $provides$
+  </div>
+$endif$
 $if(synopsis)$
 <div class="synopsis">$synopsis$</div>
 $endif$
@@ -10,12 +15,11 @@ $endif$
 
 $frontPanel$
 $body$
+<h2>External links</h2>
 $if(homepage)$
 <p>See the <a href="$homepage$">homepage</a> for more details.</p>
 $endif$
 $if(schneidersladen)$
 <p><span lang="de">Schneiders Laden</span> has a <a href="https://www.schneidersladen.de/en/$schneidersladen$">page</a> about this module.</p>
 $endif$
-
-<div><a href="https://github.com/mlang/eurorack-metadata/edit/master/$path$">Edit</a></div>
 

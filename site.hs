@@ -39,29 +39,30 @@ main = hakyllWith config $ do
   tags <- buildTags ("posts/**" .||. "Eurorack/jams/*") (fromCapture "tags/*.html")
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
   manufacturers <- buildTagsWith (getTags' "manufacturers") "Eurorack/Modules/*" (fromCapture "Eurorack/Manufacturers/*.html")
+  provides <- buildTagsWith (getTags' "provides") "Eurorack/Modules/*" (fromCapture "Eurorack/Features/*.html")
 
   match "Eurorack/jams/*" $ do
     route $ setExtension "html"
-    compile $ pandocCompiler >>=
-              saveSnapshot "content" >>=
-              loadAndApplyTemplate "templates/jam.html" (tagsField "tags" tags <> postCtx) >>=
-              loadAndApplyTemplate "templates/default.html" postCtx >>=
-              relativizeUrls
+    compile $ pandocCompiler
+          >>= saveSnapshot "content"
+          >>= loadAndApplyTemplate "templates/jam.html" (tagsField "tags" tags <> postCtx)
+          >>= loadAndApplyTemplate "templates/default.html" postCtx
+          >>= relativizeUrls
 
   match "posts/**" $ do
     route $ setExtension "html"
-    compile $ pandocCompiler >>=
-              saveSnapshot "content" >>=
-              loadAndApplyTemplate "templates/post.html" (tagsField "tags" tags <> postCtx) >>=
-              loadAndApplyTemplate "templates/default.html" postCtx >>=
-              relativizeUrls
+    compile $ pandocCompiler
+          >>= saveSnapshot "content"
+          >>= loadAndApplyTemplate "templates/post.html" (tagsField "tags" tags <> postCtx)
+          >>= loadAndApplyTemplate "templates/default.html" postCtx
+          >>= relativizeUrls
 
   match "index.html" $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll ("posts/**" .||. "Eurorack/jams/*")
       let indexCtx =
-              listField "posts" postCtx (return posts) <>
+              listField "posts" postCtx (pure posts) <>
               constField "title" "Home"                <>
               defaultContext
 
@@ -82,17 +83,17 @@ main = hakyllWith config $ do
   for_ [minBound .. maxBound] $ \mod ->
     create ([fromFilePath $ unpack $ "Eurorack/Modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
-      compile $ pandocCompiler >>=
-                loadAndApplyTemplate "templates/module.html" (manufacturersField "manufacturers" manufacturers <> moduleCtx) >>=
-                loadAndApplyTemplate "templates/default.html" moduleCtx >>=
-                relativizeUrls
+      compile $ pandocCompiler
+            >>= loadAndApplyTemplate "templates/module.html" (moduleCtxWithManufacturersAndProvides manufacturers provides)
+            >>= loadAndApplyTemplate "templates/default.html" moduleCtx
+            >>= relativizeUrls
 
   match "Eurorack/Modules.html" $ do
     route idRoute
     compile $ do
       modules <- loadAll ("Eurorack/Modules/*")
       let indexCtx =
-              listField "modules" moduleCtx (return modules) <>
+              listField "modules" moduleCtx (pure modules) <>
               defaultContext
 
       getResourceBody
@@ -104,13 +105,10 @@ main = hakyllWith config $ do
     route idRoute
     compile $ do
       jams <- recentFirst =<< loadAll "Eurorack/jams/*"
-      let indexCtx =
-              listField "jams" postCtx (return jams) <>
-              defaultContext
-
+      let ctx = listField "jams" postCtx (pure jams) <> defaultContext
       getResourceBody
-        >>= applyAsTemplate indexCtx
-        >>= loadAndApplyTemplate "templates/default.html" indexCtx
+        >>= applyAsTemplate ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
   tagsRules categories $ \category pattern -> do
@@ -118,7 +116,9 @@ main = hakyllWith config $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
-      let ctx = constField "title" title <> listField "posts" postCtx (return posts) <> defaultContext
+      let ctx = constField "title" title
+             <> listField "posts" postCtx (pure posts)
+             <> defaultContext
       makeItem ""
         >>= loadAndApplyTemplate "templates/tag.html" ctx
         >>= loadAndApplyTemplate "templates/default.html" ctx
@@ -129,7 +129,9 @@ main = hakyllWith config $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll pattern
-      let ctx = constField "title" title <> listField "posts" postCtx (return posts) <> defaultContext
+      let ctx = constField "title" title
+             <> listField "posts" postCtx (pure posts)
+             <> defaultContext
       makeItem ""
         >>= loadAndApplyTemplate "templates/tag.html" ctx
         >>= loadAndApplyTemplate "templates/default.html" ctx
@@ -140,9 +142,24 @@ main = hakyllWith config $ do
     route idRoute
     compile $ do
       modules <- loadAll pattern
-      let ctx = constField "title" title <> listField "modules" moduleCtx (return modules) <> defaultContext
+      let ctx = constField "title" title
+             <> listField "modules" moduleCtx (pure modules)
+             <> defaultContext
       makeItem ""
         >>= loadAndApplyTemplate "templates/manufacturer.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+
+  tagsRules provides $ \feature pattern -> do
+    let title = feature <> "s"
+    route idRoute
+    compile $ do
+      modules <- loadAll pattern
+      let ctx = constField "title" title
+             <> listField "modules" moduleCtx (pure modules)
+             <> defaultContext
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/feature.html" ctx
         >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
@@ -161,6 +178,14 @@ moduleCtx = moduleTitleField "title"
          <> moduleLengthField "height" height
          <> moduleFrontPanelField "frontPanel"
          <> defaultContext
+
+moduleCtxWithManufacturersAndProvides :: Tags -> Tags -> Context String
+moduleCtxWithManufacturersAndProvides manufacturers provides =
+    providesField "provides" provides <> moduleCtxWithManufacturers manufacturers
+
+moduleCtxWithManufacturers :: Tags -> Context String
+moduleCtxWithManufacturers manufacturers =
+    manufacturersField "manufacturers" manufacturers <> moduleCtx
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
@@ -241,7 +266,7 @@ tagsFieldWith' getTags'' renderLink cat key tags = field key $ \item -> do
   tags' <- getTags'' $ itemIdentifier item
   links <- for tags' $ \tag -> do
     route' <- getRoute $ tagsMakeId tags tag
-    return $ renderLink tag route'
+    pure $ renderLink tag route'
 
   if (length tags' == 0)
   then empty
@@ -253,10 +278,13 @@ tagsField = tagsFieldWith' (getTags' "tags") simpleRenderLink (mconcat . intersp
 manufacturersField :: String -> Tags -> Context a
 manufacturersField = tagsFieldWith' (getTags' "manufacturers") simpleRenderLink (mconcat . intersperse ", ")
 
+providesField :: String -> Tags -> Context a
+providesField = tagsFieldWith' (getTags' "provides") simpleRenderLink (mconcat . intersperse ", ")
+
 getTags' :: MonadMetadata m => String -> Identifier -> m [String]
 getTags' key identifier = do
     metadata <- getMetadata identifier
-    return $ fromMaybe [] $
+    pure $ fromMaybe [] $
         (lookupStringList key metadata) `mplus`
         (map trim . splitAll "," <$> lookupString key metadata)
 

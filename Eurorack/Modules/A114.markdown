@@ -1,6 +1,7 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/a114.htm
+provides: Ring modulator
 schneidersladen: doepfer-a-114-dual-ringmodulator.html
 ---
 

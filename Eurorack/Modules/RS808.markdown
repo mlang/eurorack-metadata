@@ -1,5 +1,6 @@
 ---
 manufacturers: TipTop Audio
+provides: Rimshot
 homepage: http://tiptopaudio.com/rs808.php
 schneidersladen: tiptop-audio-rs808.html
 ---

@@ -1,5 +1,6 @@
 ---
 manufacturers: Döpfer
+provides: VCA
 homepage: http://www.doepfer.de/a1323.htm
 ---
 

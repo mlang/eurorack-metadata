@@ -1,6 +1,7 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/a1066.htm
+provides: LPF, BPF HPF
 schneidersladen: doepfer-a-106-6-xp-filter-oberheim-xpander.html
 ---
 

@@ -1,6 +1,7 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/a1012.htm
+provides: VCA, LPF, LPG
 schneidersladen: doepfer-a-101-2-vactrol-lowpass-gate.html
 ---
 

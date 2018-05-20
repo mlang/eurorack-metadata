@@ -1,5 +1,6 @@
 ---
 manufacturers: Döpfer
+provides: Buffered Multiple
 homepage: http://www.doepfer.de/a1803.htm
 ---
 

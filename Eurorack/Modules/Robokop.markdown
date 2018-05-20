@@ -1,5 +1,6 @@
 ---
 manufacturers: AcidLab
+provides: Trigger sequencer
 schneidersladen: acidlab-robokop.html
 ---
 ## Usage

@@ -1,5 +1,6 @@
 ---
 manufacturers: Döpfer
+provides: ADSR Envelope Generator
 ---
 ## Usage
 
