@@ -1,5 +1,6 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
+import           Control.Applicative (Alternative(..))
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (for_)
 import           Data.Maybe (catMaybes)
@@ -11,8 +12,9 @@ import           Data.Units.SI (Ampere(..), Meter(..))
 import           Data.Units.SI.Prefixes (centi, milli)
 import           Data.Yaml
 import           Eurorack.Modules
-import           Hakyll
+import           Hakyll hiding (titleField)
 import           Lucid hiding (for_)
+import           System.FilePath (takeBaseName)
 
 main :: IO ()
 main = hakyllWith config $ do
@@ -76,11 +78,24 @@ main = hakyllWith config $ do
   for_ [minBound .. maxBound] $ \mod ->
     create ([fromFilePath $ unpack $ "Eurorack/Modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
-      let ctx = moduleCtx mod
       compile $ pandocCompiler >>=
-                loadAndApplyTemplate "templates/module.html" ctx >>=
-                loadAndApplyTemplate "templates/default.html" ctx >>=
+                loadAndApplyTemplate "templates/module.html" moduleCtx >>=
+                loadAndApplyTemplate "templates/default.html" moduleCtx >>=
                 relativizeUrls
+
+  match "Eurorack/Modules.html" $ do
+    route idRoute
+    compile $ do
+      modules <- loadAll ("Eurorack/Modules/*")
+      let indexCtx =
+              listField "modules" moduleCtx (return modules) <>
+              constField "title" "List of documented modules"                <>
+              defaultContext
+
+      getResourceBody
+        >>= applyAsTemplate indexCtx
+        >>= loadAndApplyTemplate "templates/default.html" indexCtx
+        >>= relativizeUrls
 
   match "jams.html" $ do
     route idRoute
@@ -123,21 +138,13 @@ postCtx = teaserField "teaser" "content"
        <> dateField "date" "%B %e, %Y"
        <> defaultContext
 
-moduleCtx :: Module -> Context String
-moduleCtx m = constField "title" (show $ fullName m)
-           <> mconcat (catMaybes [constField "synopsis" . show <$> synopsis m])
-           <> functionField "current" c
-           <> lengthField "width" (width m)
-           <> constField "frontPanel" (show $ frontPanelHtml m)
+moduleCtx :: Context String
+moduleCtx = moduleTitleField "title"
+           <> moduleSynopsisField "synopsis"
+           <> currentField "current"
+           <> widthField "width"
+           <> moduleFrontPanelField "frontPanel"
            <> defaultContext
-  where
-    c ["+12V", "mA"] i = case currents m of
-      Currents mA _ _ -> pure $ show $ round $ mA # milli Ampere
-    c ["-12V", "mA"] i = case currents m of
-      Currents _ mA _ -> pure $ show $ round $ mA # milli Ampere
-    c ["+5V", "mA"] i = case currents m of
-      Currents _ _ mA -> pure $ show $ round $ mA # milli Ampere
-    c _ i = error $ "current(): missing argument in item " <> show (itemIdentifier i)
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
@@ -153,6 +160,50 @@ verify (Case "A100LMS9" rows) = length rows == 3
 config = defaultConfiguration {
   deployCommand = "rsync -avcz _site/ mlang@blind.guru:blind.guru/modular/"
 }
+
+maybeModule :: Item a -> Maybe Module
+maybeModule item = let ident = takeBaseName $ toFilePath $ itemIdentifier item in
+                   lookup ident $
+                   map (\mod -> (unpack $ identifier mod, mod)) [minBound .. maxBound]
+
+
+moduleFieldWith :: String -> (Module -> Compiler String) -> Context a
+moduleFieldWith key f = field key $ \item ->
+  maybe (fail $ "moduleFieldWith: Can't find module in " <> show (itemIdentifier item))
+        f $ maybeModule item
+
+moduleTitleField :: String -> Context String
+moduleTitleField key = moduleFieldWith key (return . show . fullName)
+
+moduleSynopsisField :: String -> Context String
+moduleSynopsisField key = moduleFieldWith key $ \mod ->
+  maybe empty (pure . show) (synopsis mod)
+
+moduleFrontPanelField :: String -> Context String
+moduleFrontPanelField key = moduleFieldWith key (pure . show . frontPanelHtml)
+
+moduleFunctionField :: String -> (Module -> [String] -> Compiler String) -> Context String
+moduleFunctionField key f = functionField key go where
+  go args item = maybe (error $ "moduleFunctionField: Can't find module in " <> show (itemIdentifier item))
+                       (flip f args) $ maybeModule item
+
+widthField :: String -> Context String
+widthField key = moduleFunctionField key f where
+  f mod ["HP"] = pure . show . round $ width mod # HorizontalPitch
+  f mod ["U"] = pure . show . round $ width mod # RackUnit
+  f mod [] = f mod ["HP"]
+  f mod _ = error $ "width(): Unsupported arguments"
+
+currentField :: String -> Context String
+currentField key = moduleFunctionField key f where
+  f mod ["+12V", "mA"] = let Currents mA _ _ = currents mod in
+                         pure . show . round $ mA # milli Ampere
+  f mod ["-12V", "mA"] = let Currents _ mA _ = currents mod in
+                         pure . show . round $ mA # milli Ampere
+  f mod ["+5V", "mA"] = let Currents _ _ mA = currents mod in
+                         pure . show . round $ mA # milli Ampere
+  f mod [k] = f mod [k, "mA"]
+  f mod _ = error $ key <> "(): Unsupported arguments"
 
 lengthField :: String -> Length -> Context String
 lengthField k l = functionField k f where
