@@ -1,0 +1,5 @@
+---
+homepage: http://tiptopaudio.com/sd808.php
+schneidersladen: tiptop-audio-sd808.html
+---
+

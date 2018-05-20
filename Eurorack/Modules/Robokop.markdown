@@ -1,3 +1,6 @@
+---
+schneidersladen: acidlab-robokop.html
+---
 ## Usage
 
 ### Copy & paste patterns (Pattern Play Mode)
