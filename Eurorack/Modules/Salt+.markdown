@@ -1,0 +1,4 @@
+---
+manufacturers: Bela, Rebel Technologies
+---
+

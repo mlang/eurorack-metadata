@@ -1,0 +1,4 @@
+---
+manufacturers: Verbos Electronics
+---
+

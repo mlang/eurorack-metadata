@@ -1,4 +1,5 @@
 ---
+manufacturers: AcidLab
 schneidersladen: acidlab-robokop.html
 ---
 ## Usage

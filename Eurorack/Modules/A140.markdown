@@ -1,3 +1,6 @@
+---
+manufacturers: Döpfer
+---
 ## Usage
 
 The envelope is started (triggered) by a gate signal either from the INT.GATE

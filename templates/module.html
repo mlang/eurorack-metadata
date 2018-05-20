@@ -4,6 +4,10 @@ $endif$
 <p>
 $width("HP")$ HP ($width("mm")$ mm)$if(current("+12V", "mA"))$, $current("+12V", "mA")$ mA @ +12V$endif$$if(current("-12V", "mA"))$, $current("-12V", "mA")$ mA @ -12V$endif$$if(current("+5V", "mA"))$, $current("+5V", "mA")$ mA @ +5V$endif$
 </p>
+$if(manufacturers)$
+<p>Made by $manufacturers$.</p>
+$endif$
+
 $frontPanel$
 $body$
 $if(homepage)$

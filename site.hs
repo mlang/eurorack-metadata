@@ -1,18 +1,21 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 import           Control.Applicative (Alternative(..))
+import           Control.Monad (mplus)
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (for_)
-import           Data.Maybe (catMaybes)
+import           Data.List                       (intersperse)
+import           Data.Maybe (catMaybes, fromMaybe)
 import           Data.Metrology ((#))
 import           Data.Metrology.SI (Length)
 import           Data.Semigroup ((<>))
-import           Data.Text (unpack)
+import           Data.Text (pack, unpack)
+import           Data.Traversable (for)
 import           Data.Units.SI (Ampere(..), Meter(..))
 import           Data.Units.SI.Prefixes (centi, milli)
 import           Data.Yaml
 import           Eurorack.Modules
-import           Hakyll hiding (titleField)
+import           Hakyll hiding (tagsField)
 import           Lucid hiding (for_)
 import           System.FilePath (takeBaseName)
 
@@ -35,12 +38,13 @@ main = hakyllWith config $ do
 
   tags <- buildTags ("posts/**" .||. "Eurorack/jams/*") (fromCapture "tags/*.html")
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
+  manufacturers <- buildTagsWith (getTags' "manufacturers") "Eurorack/Modules/*" (fromCapture "Eurorack/Manufacturers/*.html")
 
   match "Eurorack/jams/*" $ do
     route $ setExtension "html"
     compile $ pandocCompiler >>=
               saveSnapshot "content" >>=
-              loadAndApplyTemplate "templates/jam.html" postCtx >>=
+              loadAndApplyTemplate "templates/jam.html" (tagsField "tags" tags <> postCtx) >>=
               loadAndApplyTemplate "templates/default.html" postCtx >>=
               relativizeUrls
 
@@ -48,7 +52,7 @@ main = hakyllWith config $ do
     route $ setExtension "html"
     compile $ pandocCompiler >>=
               saveSnapshot "content" >>=
-              loadAndApplyTemplate "templates/post.html" postCtx >>=
+              loadAndApplyTemplate "templates/post.html" (tagsField "tags" tags <> postCtx) >>=
               loadAndApplyTemplate "templates/default.html" postCtx >>=
               relativizeUrls
 
@@ -79,7 +83,7 @@ main = hakyllWith config $ do
     create ([fromFilePath $ unpack $ "Eurorack/Modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
       compile $ pandocCompiler >>=
-                loadAndApplyTemplate "templates/module.html" moduleCtx >>=
+                loadAndApplyTemplate "templates/module.html" (manufacturersField "manufacturers" manufacturers <> moduleCtx) >>=
                 loadAndApplyTemplate "templates/default.html" moduleCtx >>=
                 relativizeUrls
 
@@ -131,6 +135,17 @@ main = hakyllWith config $ do
         >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
+  tagsRules manufacturers $ \manufacturer pattern -> do
+    let title = "Modules by " <> manufacturer
+    route idRoute
+    compile $ do
+      modules <- loadAll pattern
+      let ctx = constField "title" title <> listField "modules" moduleCtx (return modules) <> defaultContext
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/manufacturer.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx = teaserField "teaser" "content"
@@ -139,6 +154,7 @@ postCtx = teaserField "teaser" "content"
 
 moduleCtx :: Context String
 moduleCtx = moduleTitleField "title"
+         <> moduleNameField "name"
          <> moduleSynopsisField "synopsis"
          <> moduleCurrentField "current"
          <> moduleLengthField "width" width
@@ -207,3 +223,40 @@ moduleCurrentField key = moduleFunctionField key f where
                          pure . show . round $ mA # milli Ampere
   f mod [k] = f mod [k, "mA"]
   f mod _ = error $ key <> "(): Unsupported arguments"
+
+-- Reimplement tagsFieldWith to fail if zero tags were found in metadata
+
+simpleRenderLink :: String -> (Maybe FilePath) -> Maybe (Html ())
+simpleRenderLink _   Nothing         = Nothing
+simpleRenderLink tag (Just filePath) =
+  Just $ a_ [href_ $ pack $ toUrl filePath] $ toHtml tag
+
+tagsFieldWith' :: (Identifier -> Compiler [String])
+              -> (String -> (Maybe FilePath) -> Maybe (Html ()))
+              -> ([Html ()] -> Html ())
+              -> String
+              -> Tags
+              -> Context a
+tagsFieldWith' getTags'' renderLink cat key tags = field key $ \item -> do
+  tags' <- getTags'' $ itemIdentifier item
+  links <- for tags' $ \tag -> do
+    route' <- getRoute $ tagsMakeId tags tag
+    return $ renderLink tag route'
+
+  if (length tags' == 0)
+  then empty
+  else pure . show . cat . catMaybes $ links
+
+tagsField :: String -> Tags -> Context a
+tagsField = tagsFieldWith' (getTags' "tags") simpleRenderLink (mconcat . intersperse ", ")
+
+manufacturersField :: String -> Tags -> Context a
+manufacturersField = tagsFieldWith' (getTags' "manufacturers") simpleRenderLink (mconcat . intersperse ", ")
+
+getTags' :: MonadMetadata m => String -> Identifier -> m [String]
+getTags' key identifier = do
+    metadata <- getMetadata identifier
+    return $ fromMaybe [] $
+        (lookupStringList key metadata) `mplus`
+        (map trim . splitAll "," <$> lookupString key metadata)
+

@@ -1,4 +1,5 @@
 ---
+manufacturers: Döpfer
 homepage: http://www.doepfer.de/a180.htm
 ---
 
