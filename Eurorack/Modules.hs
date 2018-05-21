@@ -890,21 +890,21 @@ Func. LP VCA L+V
   ]
 frontPanel A103 = UnknownPanel
 frontPanel A106_6 = ASCIILayoutDiagram [r|
-                        3A-1L
+                        3A/3A1L
 Audio-In       Lev.
-                        2N-1L
+                        2N/2N1L
 
-FCV1           Frq.     4B
+FCV1           Frq.   2H1L/4B
 
-                        3H-1L
+                        3H/3H1L
 FCV2           FCV
-                        2H-1L
+                        2H/2H1L
 
-QCV            QCV      2B
+QCV            QCV      1H/2B    
 
-                        4L
+                        3L/4L
 Filtergrp      Q
-                        2L
+                        1L/2L
 |] [("Audio-In", Socket In mini)
   , ("FCV1", Socket In mini)
   , ("FCV2", Socket In mini)
@@ -915,14 +915,14 @@ Filtergrp      Q
   , ("FCV", Rotary)
   , ("QCV", Rotary)
   , ("Q", Rotary)
-  , ("3A-1L", Socket Out mini)
-  , ("2N-1L", Socket Out mini)
-  , ("4B", Socket Out mini)
-  , ("3H-1L", Socket Out mini)
-  , ("2H-1L", Socket Out mini)
-  , ("2B", Socket Out mini)
-  , ("4L", Socket Out mini)
-  , ("2L", Socket Out mini)
+  , ("3A/3A1L", Socket Out mini)
+  , ("2N/2N1L", Socket Out mini)
+  , ("2H1L/4B", Socket Out mini)
+  , ("3H/3H1L", Socket Out mini)
+  , ("2H/2H1L", Socket Out mini)
+  , ("1H/2B", Socket Out mini)
+  , ("3L/4L", Socket Out mini)
+  , ("1L/2L", Socket Out mini)
   ]
 frontPanel A110_1 = ASCIILayoutDiagram [r|
 SYNC     Range

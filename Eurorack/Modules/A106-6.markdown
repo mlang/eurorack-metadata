@@ -1,7 +1,39 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/a1066.htm
-provides: LPF, BPF HPF
+provides: 4-pole Lowpass, Bandpass, Highpass, Notch
 schneidersladen: doepfer-a-106-6-xp-filter-oberheim-xpander.html
 ---
+## Filter groups
+
+The types of the 8 simultaneous filter outputs in the rightmost column of the front
+panel are determined by the filter group switch in the lower left corner.
+
+Notice that output 3 of filter group 1 and output 5 of filter group 2 are
+equal.  Consequently, this multimode filter offers 15 different
+filter types.
+
+### Group 1 (left position)
+
+From top to bottom:
+
+1. 3-pole allpass
+2. 2-pole notch
+3. Combination of 2-pole highpass and 1-pole lowpass
+4. 3-pole highpass
+5. 2-pole highpass
+6. 1-pole highpass
+7. 3-pole lowpass
+8. 1-pole lowpass
+
+### Group 2 (right position)
+
+1. Combination of 3-pole allpass and 1-pole lowpass
+2. Combination of 2-pole notch and 1-pole lowpass
+3. 4-pole bandpass
+4. Combination of 3-pole highpass and 1-pole lowpass
+5. Combination of 2-pole highpass and 1-pole lowpass
+6. 2-pole highpass
+7. 4-pole lowpass
+8. 2-pole lowpass
 
