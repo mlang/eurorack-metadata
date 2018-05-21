@@ -1,7 +1,7 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/a110.htm
-provides: VCO, Sawtooth, Sine, Square, Triangle
+provides: VCO, Sawtooth, Sine, Square, Triangle, PWM, FM
 schneidersladen: doepfer-a-110-standard-vco.html
 ---
 ## Usage

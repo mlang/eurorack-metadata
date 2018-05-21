@@ -1,5 +1,5 @@
 ---
 manufacturers: Döpfer
-provides: Input apmlifier
+provides: Line In
 ---
 

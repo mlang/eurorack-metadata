@@ -1,7 +1,7 @@
 ---
 manufacturers: Döpfer
 homepage: http://www.doepfer.de/A1114.htm
-provides: VCO, Sawtooth, Square, Triangle
+provides: VCO, Sawtooth, Square, Triangle, FM, PWM
 schneidersladen: doepfer-a-111-4.html
 ---
 

@@ -15,7 +15,7 @@ import Data.Metrology ((%), (#), (|+|), (|*|), (:@), qSum)
 import Data.Metrology.Poly (showIn)
 import Data.Metrology.Show
 import Data.Metrology.SI (Current, ElectricPotential, Power, Length)
-import Data.Semigroup ((<>))
+import Data.Semigroup (Semigroup((<>)))
 import Data.Text (Text, intercalate, pack, unpack)
 import Data.Units.SI (Ampere(..), Hour(..), Meter(..), Volt(..), Watt(..))
 import Data.Units.SI.Prefixes (centi, Milli, milli)
@@ -578,10 +578,13 @@ height _ = 3 % RackUnit
 
 data Currents = Currents Current Current Current deriving (Eq, Show)
 
+instance Semigroup Currents where
+  (Currents a1 a2 a3) <> (Currents b1 b2 b3) =
+    Currents (a1 |+| b1) (a2 |+| b2) (a3 |+| b3)
+
 instance Monoid Currents where
   mempty = Currents (mA 0) (mA 0) (mA 0)
-  (Currents a1 a2 a3) `mappend` (Currents b1 b2 b3) =
-    Currents (a1 |+| b1) (a2 |+| b2) (a3 |+| b3)
+  mappend = (<>)
 
 currents :: Module -> Currents
 currents Autobot = Currents (mA 80) (mA 20) (mA 0)
@@ -672,9 +675,14 @@ data FrontPanel e = UnknownPanel
                   deriving (Foldable, Functor, Eq)
 
 data FPECount = FPECount { buttons, rotaries, sockets, switches :: Int } deriving (Eq, Show)
+instance Semigroup FPECount where
+  FPECount a b c d <> FPECount a' b' c' d' =
+    FPECount (a + a') (b + b') (c + c') (d + d')
+
 instance Monoid FPECount where
-  FPECount a b c d `mappend` FPECount a' b' c' d' = FPECount (a + a') (b + b') (c + c') (d + d')
   mempty = FPECount 0 0 0 0
+  mappend = (<>)
+
 instance ToHtml FPECount where
   toHtml (FPECount {..}) = do 
     toHtml $ show buttons
