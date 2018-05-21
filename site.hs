@@ -40,6 +40,16 @@ main = hakyllWith config $ do
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
   manufacturers <- buildTagsWith (getTags' "manufacturers") "Eurorack/Modules/*" (fromCapture "Eurorack/Manufacturers/*.html")
   provides <- buildTagsWith (getTags' "provides") "Eurorack/Modules/*" (fromCapture "Eurorack/Features/*.html")
+  let moduleCtx = moduleTitleField "title"
+               <> moduleNameField "name"
+               <> moduleSynopsisField "synopsis"
+               <> moduleCurrentField "current"
+               <> moduleLengthField "width" width
+               <> moduleLengthField "height" height
+               <> moduleFrontPanelField "frontPanel"
+               <> providesField "provides" provides
+               <> manufacturersField "manufacturers" manufacturers
+               <> defaultContext
 
   match "Eurorack/jams/*" $ do
     route $ setExtension "html"
@@ -84,7 +94,7 @@ main = hakyllWith config $ do
     create ([fromFilePath $ unpack $ "Eurorack/Modules/" <> identifier mod <> ".markdown"]) $ do
       route $ setExtension "html"
       compile $ pandocCompiler
-            >>= loadAndApplyTemplate "templates/module.html" (moduleCtxWithManufacturersAndProvides manufacturers provides)
+            >>= loadAndApplyTemplate "templates/module.html" moduleCtx
             >>= loadAndApplyTemplate "templates/default.html" moduleCtx
             >>= relativizeUrls
 
@@ -170,31 +180,13 @@ postCtx = teaserField "teaser" "content"
        <> dateField "date" "%B %e, %Y"
        <> defaultContext
 
-moduleCtx :: Context String
-moduleCtx = moduleTitleField "title"
-         <> moduleNameField "name"
-         <> moduleSynopsisField "synopsis"
-         <> moduleCurrentField "current"
-         <> moduleLengthField "width" width
-         <> moduleLengthField "height" height
-         <> moduleFrontPanelField "frontPanel"
-         <> defaultContext
-
-moduleCtxWithManufacturersAndProvides :: Tags -> Tags -> Context String
-moduleCtxWithManufacturersAndProvides manufacturers provides =
-    providesField "provides" provides <> moduleCtxWithManufacturers manufacturers
-
-moduleCtxWithManufacturers :: Tags -> Context String
-moduleCtxWithManufacturers manufacturers =
-    manufacturersField "manufacturers" manufacturers <> moduleCtx
-
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
   go yaml = case decodeEither $ toStrict $ yaml :: Either String System of
-    Left e -> fail $ show e
+    Left e -> error e
     Right v -> if all verify v
                then pure . show $ systemHtml v
-               else fail "illegal rack"
+               else error "illegal rack"
 
 verify (Case "A100LMB" rows) = length rows == 2
 verify (Case "A100LMS9" rows) = length rows == 3
@@ -204,32 +196,32 @@ config = defaultConfiguration {
 }
 
 maybeModule :: Item a -> Maybe Module
-maybeModule item = let ident = takeBaseName $ toFilePath $ itemIdentifier item in
+maybeModule item = let ident = pack . takeBaseName . toFilePath $ itemIdentifier item in
                    lookup ident $
-                   map (\mod -> (unpack $ identifier mod, mod)) [minBound .. maxBound]
+                   map (\mod -> (identifier mod, mod)) [minBound .. maxBound]
 
-moduleFieldWith :: String -> (Module -> Compiler String) -> Context a
-moduleFieldWith key f = field key $ \item ->
-  maybe (fail $ "moduleFieldWith: Can't find module in " <> show (itemIdentifier item))
-        f $ maybeModule item
+moduleField :: String -> (Module -> Compiler String) -> Context a
+moduleField key f = field key $ \item -> maybe
+  (error $ "moduleField: Can't find module in " <> show (itemIdentifier item)) f $
+  maybeModule item
 
 moduleTitleField :: String -> Context String
-moduleTitleField key = moduleFieldWith key (pure . show . fullName)
+moduleTitleField key = moduleField key (pure . show . fullName)
 
 moduleNameField :: String -> Context String
-moduleNameField key = moduleFieldWith key (pure . show . toHtml . name)
+moduleNameField key = moduleField key (pure . show . toHtml . name)
 
 moduleSynopsisField :: String -> Context String
-moduleSynopsisField key = moduleFieldWith key $ \mod ->
+moduleSynopsisField key = moduleField key $ \mod ->
   maybe empty (pure . show) (synopsis mod)
 
 moduleFrontPanelField :: String -> Context String
-moduleFrontPanelField key = moduleFieldWith key (pure . show . frontPanelHtml)
+moduleFrontPanelField key = moduleField key (pure . show . frontPanelHtml)
 
 moduleFunctionField :: String -> (Module -> [String] -> Compiler String) -> Context String
-moduleFunctionField key f = functionField key go where
-  go args item = maybe (error $ "moduleFunctionField: Can't find module in " <> show (itemIdentifier item))
-                       (flip f args) $ maybeModule item
+moduleFunctionField key f = functionField key $ \args item ->
+  maybe (error $ "moduleFunctionField: Can't find module in " <> show (itemIdentifier item))
+        (flip f args) $ maybeModule item
 
 moduleLengthField :: String -> (Module -> Length) -> Context String
 moduleLengthField key f = moduleFunctionField key go where
@@ -237,7 +229,7 @@ moduleLengthField key f = moduleFunctionField key go where
   go mod ["U"] = pure . show . round $ f mod # RackUnit
   go mod ["mm"] = pure . show . round $ f mod # milli Meter
   go mod [] = go mod ["HP"]
-  go mod _ = error $ "width(): Unsupported arguments"
+  go mod _ = error $ key <> "(): unsupported arguments"
 
 moduleCurrentField :: String -> Context String
 moduleCurrentField key = moduleFunctionField key f where
@@ -252,24 +244,22 @@ moduleCurrentField key = moduleFunctionField key f where
 
 -- Reimplement tagsFieldWith to fail if zero tags were found in metadata
 
-simpleRenderLink :: String -> (Maybe FilePath) -> Maybe (Html ())
+simpleRenderLink :: String -> Maybe FilePath -> Maybe (Html ())
 simpleRenderLink _   Nothing         = Nothing
 simpleRenderLink tag (Just filePath) =
   Just $ a_ [href_ $ pack $ toUrl filePath] $ toHtml tag
 
 tagsFieldWith' :: (Identifier -> Compiler [String])
-              -> (String -> (Maybe FilePath) -> Maybe (Html ()))
+              -> (String -> Maybe FilePath -> Maybe (Html ()))
               -> ([Html ()] -> Html ())
               -> String
               -> Tags
               -> Context a
 tagsFieldWith' getTags'' renderLink cat key tags = field key $ \item -> do
   tags' <- getTags'' $ itemIdentifier item
-  links <- for tags' $ \tag -> do
-    route' <- getRoute $ tagsMakeId tags tag
-    pure $ renderLink tag route'
+  links <- for tags' $ \tag -> renderLink tag <$> getRoute (tagsMakeId tags tag)
 
-  if (length tags' == 0)
+  if (length links == 0)
   then empty
   else pure . show . cat . catMaybes $ links
 
@@ -284,8 +274,8 @@ providesField = tagsFieldWith' (getTags' "provides") simpleRenderLink (mconcat .
 
 getTags' :: MonadMetadata m => String -> Identifier -> m [String]
 getTags' key identifier = do
-    metadata <- getMetadata identifier
-    pure $ fromMaybe [] $
+  metadata <- getMetadata identifier
+  pure $ fromMaybe [] $
         (lookupStringList key metadata) `mplus`
         (map trim . splitAll "," <$> lookupString key metadata)
 
