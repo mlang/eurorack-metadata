@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveGeneric #-}
+{-# LANGUAGE MonadComprehensions #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TypeFamilies, TypeOperators #-}
 module Eurorack.Modules (
@@ -61,167 +62,46 @@ data Module = Autobot | M303 | Robokop
             | PerformanceMixer
             deriving (Bounded, Enum, Eq, Read, Show)
 
-identifier Autobot = pack "Autobot"
-identifier M303 = pack "M303"
-identifier Robokop = pack "Robokop"
-identifier VScale = pack "VScale"
-identifier Salt = pack "Salt"
-identifier SaltPlus = pack "Salt+"
-identifier DUSeq = pack "DUSeq"
-identifier A100_bl2 = pack "A100-BL2"
-identifier A100_bl4 = pack "A100-BL4"
-identifier A100_bl8 = pack "A100-BL8"
-identifier A100_bl42 = pack "A100-BL42"
-identifier A101_2 = pack "A101-2"
-identifier A103 = pack "A103"
-identifier A106_6 = pack "A106-6"
-identifier A110_1 = pack "A110-1"
-identifier A111_4 = pack "A111-4"
-identifier A114 = pack "A114"
-identifier A115 = pack "A115"
-identifier A116 = pack "A116"
-identifier A118 = pack "A118"
-identifier A119 = pack "A119"
-identifier A120 = pack "A120"
-identifier A124 = pack "A124"
-identifier A130 = pack "A130"
-identifier A131 = pack "A131"
-identifier A132_3 = pack "A132-3"
-identifier A136 = pack "A136"
-identifier A138a = pack "A138a"
-identifier A138b = pack "A138b"
-identifier A138m = pack "A138m"
-identifier A138s = pack "A138s"
-identifier A140 = pack "A140"
-identifier A143_2 = pack "A143-2"
-identifier A143_9 = pack "A143-9"
-identifier A145 = pack "A145"
-identifier A146 = pack "A146"
-identifier A148 = pack "A148"
-identifier A151 = pack "A151"
-identifier A152 = pack "A152"
-identifier A156 = pack "A156"
-identifier A160 = pack "A160"
-identifier A160_5 = pack "A160-5"
-identifier A161 = pack "A161"
-identifier A162 = pack "A162"
-identifier A166 = pack "A166"
-identifier A170 = pack "A170"
-identifier A177_2 = pack "A177-2"
-identifier A180_1 = pack "A180-1"
-identifier A180_2 = pack "A180-2"
-identifier A180_3 = pack "A180-3"
-identifier A182_1 = pack "A182-1"
-identifier A184_1 = pack "A184-1"
-identifier A185_2 = pack "A185-2"
-identifier A190_4 = pack "A190-4"
-identifier DLD = pack "DLD"
-identifier QCD = pack "QCD"
-identifier QCDExp = pack "QCDExp"
-identifier SubMix = pack "SubMix"
-identifier DPO = pack "DPO"
-identifier ErbeVerb = pack "ErbeVerb"
-identifier Maths = pack "Maths"
-identifier STO = pack "STO"
-identifier Branches = pack "Branches"
-identifier Grids = pack "Grids"
-identifier BIA = pack "BIA"
-identifier Mixer = pack "Mixer"
-identifier Outs = pack "Outs"
-identifier Evolution = pack "Evolution"
-identifier CP909 = pack "CP909"
-identifier Hats808 = pack "Hats808"
-identifier One = pack "One"
-identifier RS808 = pack "RS808"
-identifier SD808 = pack "SD808"
-identifier CO = pack "CO"
-identifier ATC = pack "ATC"
-identifier PerformanceMixer = "PerformanceMixer"
+identifier :: Module -> Text
+identifier SaltPlus = "Salt+"
+identifier A100_bl2 = "A100-BL2"
+identifier A100_bl4 = "A100-BL4"
+identifier A100_bl8 = "A100-BL8"
+identifier A100_bl42 = "A100-BL42"
+identifier A101_2 = "A101-2"
+identifier A106_6 = "A106-6"
+identifier A110_1 = "A110-1"
+identifier A111_4 = "A111-4"
+identifier A132_3 = "A132-3"
+identifier A143_2 = "A143-2"
+identifier A143_9 = "A143-9"
+identifier A160_5 = "A160-5"
+identifier A177_2 = "A177-2"
+identifier A180_1 = "A180-1"
+identifier A180_2 = "A180-2"
+identifier A180_3 = "A180-3"
+identifier A182_1 = "A182-1"
+identifier A184_1 = "A184-1"
+identifier A185_2 = "A185-2"
+identifier A190_4 = "A190-4"
+identifier mod = pack . show $ mod
 
 instance FromJSON Module where
-  parseJSON (String s) = foldr ((<|>) . check) failed [minBound .. maxBound] where
-    check mod = do
-      guard $ identifier mod == s
-      pure mod
-    failed = fail $ "expected Module, encountered " <> unpack s
-  parseJSON invalid = typeMismatch "Module" invalid
+  parseJSON = withText "Module" $ \s ->
+    let failed = fail $ "expected Module, encountered " <> unpack s
+        check mod = [mod | identifier mod == s]
+    in foldr ((<|>) . check) failed [minBound .. maxBound] where
 
-name Autobot = pack "Autobot"
-name M303 = pack "M303"
-name Robokop = pack "Robokop"
-name VScale = pack "V-Scale"
-name Salt = identifier Salt
-name SaltPlus = identifier SaltPlus
-name DUSeq = pack "DU-Seq"
-name A100_bl2 = pack "A100-bl2"
-name A100_bl4 = pack "A100-bl4"
-name A100_bl8 = pack "A100-bl8"
-name A100_bl42 = pack "A100-bl42"
-name A101_2 = pack "A101-2"
-name A103 = pack "A103"
-name A106_6 = pack "A106-6"
-name A110_1 = pack "A110-1"
-name A111_4 = pack "A111-4"
-name A114 = pack "A114"
-name A115 = pack "A115"
-name A116 = pack "A116"
-name A118 = pack "A118"
-name A119 = pack "A119"
-name A120 = pack "A120"
-name A124 = pack "A124"
-name A130 = pack "A130"
-name A131 = pack "A131"
-name A132_3 = pack "A132-3"
-name A136 = pack "A136"
-name A138a = pack "A138a"
-name A138b = pack "A138b"
-name A138m = pack "A138m"
-name A138s = pack "A138s"
-name A140 = pack "A140"
-name A143_2 = pack "A143-2"
-name A143_9 = pack "A143-9"
-name A145 = pack "A145"
-name A146 = pack "A146"
-name A148 = pack "A148"
-name A151 = pack "A151"
-name A152 = pack "A152"
-name A156 = pack "A156"
-name A160 = pack "A160"
-name A160_5 = pack "A160-5"
-name A161 = pack "A161"
-name A162 = pack "A162"
-name A166 = pack "A166"
-name A170 = pack "A170"
-name A177_2 = pack "A-177-2"
-name A180_1 = pack "A180-1"
-name A180_2 = pack "A180-2"
-name A180_3 = pack "A180-3"
-name A182_1 = pack "A182-1"
-name A184_1 = pack "A184-1"
-name A185_2 = pack "A185-2"
-name A190_4 = pack "A190-4"
-name DLD = pack "Dual Looping Delay"
-name QCD = pack "Quad Clock Distributor"
-name QCDExp = pack "QCD Expander"
-name SubMix = pack "SubMix"
-name DPO = pack "DPO"
-name ErbeVerb = pack "ErbeVerb"
-name Maths = pack "Maths"
-name STO = pack "STO"
-name Branches = pack "Branches"
-name Grids = pack "Grids"
-name BIA = pack "Basimilus Iteritas Alter"
-name Mixer = pack "Mixer"
-name Outs = pack "Outs"
-name Evolution = pack "Evolution"
-name CP909 = pack "CP909"
-name Hats808 = pack "Hats808"
-name One = pack "One"
-name RS808 = pack "RS808"
-name SD808 = pack "SD808"
-name CO = pack "Complex Oscillator"
-name ATC = pack "Amplitude & Tone Controller"
-name PerformanceMixer = pack "Performance Mixer"
+name VScale = "V-Scale"
+name DUSeq = "DU-Seq"
+name DLD = "Dual Looping Delay"
+name QCD = "Quad Clock Distributor"
+name QCDExp = "QCD Expander"
+name BIA = "Basimilus Iteritas Alter"
+name CO = "Complex Oscillator"
+name ATC = "Amplitude & Tone Controller"
+name PerformanceMixer = "Performance Mixer"
+name mod = identifier mod
 
 data Manufacturer = AcidLab
                   | AJHSynth
@@ -674,16 +554,18 @@ data FrontPanel e = UnknownPanel
                   | ASCIILayoutDiagram Text [e]
                   deriving (Foldable, Functor, Eq)
 
-data FPECount = FPECount { buttons, rotaries, sockets, switches :: Int } deriving (Eq, Show)
-instance Semigroup FPECount where
+data FPECount a = FPECount
+                { buttons, rotaries, sockets, switches :: a }
+                deriving (Eq, Foldable, Functor, Show)
+instance Num a => Semigroup (FPECount a) where
   FPECount a b c d <> FPECount a' b' c' d' =
     FPECount (a + a') (b + b') (c + c') (d + d')
 
-instance Monoid FPECount where
+instance Num a => Monoid (FPECount a) where
   mempty = FPECount 0 0 0 0
   mappend = (<>)
 
-instance ToHtml FPECount where
+instance Show a => ToHtml (FPECount a) where
   toHtml (FPECount {..}) = do 
     toHtml $ show buttons
     toHtml $ pack " buttons, "
@@ -693,8 +575,17 @@ instance ToHtml FPECount where
     toHtml $ pack " sockets, "
     toHtml $ show switches
     toHtml $ pack " switches."
+  toHtmlRaw (FPECount {..}) = do
+    toHtmlRaw $ show buttons
+    toHtmlRaw $ pack " buttons, "
+    toHtmlRaw $ show rotaries
+    toHtmlRaw $ pack " rotaries, "
+    toHtmlRaw $ show sockets
+    toHtmlRaw $ pack " sockets, "
+    toHtmlRaw $ show switches
+    toHtmlRaw $ pack " switches."
 
-countFrontPanelElements :: Foldable f => f Module -> FPECount
+countFrontPanelElements :: Foldable f => f Module -> FPECount Int
 countFrontPanelElements = foldMap (foldMap go . frontPanel) where
   go (_, Button) = FPECount 1 0 0 0
   go (_, Rotary) = FPECount 0 1 0 0
@@ -709,12 +600,12 @@ data FrontPanelElement = Button
                        | Socket Direction SocketType
                        | Switch [Text]
                        | RotarySwitch [Text]
-                       deriving (Eq)
+                       deriving (Eq, Show)
 
-data Direction = In | Out | InOrOut deriving (Eq)
-data SocketType = SocketType Length Contacts Channels deriving (Eq)
-data Channels = Mono | Stereo deriving (Bounded, Enum, Eq)
-data Contacts = TS | TRS deriving (Bounded, Enum, Eq)
+data Direction = In | Out | InOrOut deriving (Eq, Show)
+data SocketType = SocketType Length Contacts Channels deriving (Eq, Show)
+data Channels = Mono | Stereo deriving (Bounded, Enum, Eq, Show)
+data Contacts = TS | TRS deriving (Bounded, Enum, Eq, Show)
 
 type Label = Text
 
