@@ -1,5 +1,5 @@
 ---
 manufacturers: Verbos Electronics
-provides: VCO
+provides: VCO, FM, AM
 ---
 

@@ -555,20 +555,22 @@ data FrontPanel e = UnknownPanel
                   deriving (Foldable, Functor, Eq)
 
 data FPECount a = FPECount
-                { buttons, rotaries, sockets, switches :: a }
+                { buttons, leds, rotaries, sockets, switches :: a }
                 deriving (Eq, Foldable, Functor, Show)
 instance Num a => Semigroup (FPECount a) where
-  FPECount a b c d <> FPECount a' b' c' d' =
-    FPECount (a + a') (b + b') (c + c') (d + d')
+  FPECount a b c d e <> FPECount a' b' c' d' e' =
+    FPECount (a + a') (b + b') (c + c') (d + d') (e + e')
 
 instance Num a => Monoid (FPECount a) where
-  mempty = FPECount 0 0 0 0
+  mempty = FPECount 0 0 0 0 0
   mappend = (<>)
 
 instance Show a => ToHtml (FPECount a) where
   toHtml (FPECount {..}) = do 
     toHtml $ show buttons
     toHtml $ pack " buttons, "
+    toHtml $ show leds
+    toHtml $ pack " LEDs, "
     toHtml $ show rotaries
     toHtml $ pack " rotaries, "
     toHtml $ show sockets
@@ -578,6 +580,8 @@ instance Show a => ToHtml (FPECount a) where
   toHtmlRaw (FPECount {..}) = do
     toHtmlRaw $ show buttons
     toHtmlRaw $ pack " buttons, "
+    toHtmlRaw $ show leds
+    toHtmlRaw $ pack " LEDs, "
     toHtmlRaw $ show rotaries
     toHtmlRaw $ pack " rotaries, "
     toHtmlRaw $ show sockets
@@ -585,12 +589,13 @@ instance Show a => ToHtml (FPECount a) where
     toHtmlRaw $ show switches
     toHtmlRaw $ pack " switches."
 
-countFrontPanelElements :: Foldable f => f Module -> FPECount Int
-countFrontPanelElements = foldMap (foldMap go . frontPanel) where
-  go (_, Button) = FPECount 1 0 0 0
-  go (_, Rotary) = FPECount 0 1 0 0
-  go (_, Socket _ _) = FPECount 0 0 1 0
-  go (_, Switch _) = mempty { switches = 1 }
+fpeCount :: Module -> FPECount Int
+fpeCount = foldMap (go . snd) . frontPanel where
+  go Button = mempty { buttons = 1 }
+  go LED = mempty { leds = 1 }
+  go Rotary = mempty { rotaries = 1 }
+  go (Socket _ _) = mempty { sockets = 1 }
+  go (Switch _) = mempty { switches = 1 }
   go _ = mempty
 
 data FrontPanelElement = Button
@@ -1470,7 +1475,7 @@ systemHtml sys = do
         toHtml (powerOfCurrents (systemCurrents sys) `showAsIntegralIn` Watt)
         toHtml $ pack ")"
       dt_ "Controls"
-      dd_ $ toHtml $ countFrontPanelElements $ modules sys
+      dd_ $ toHtml $ foldMap fpeCount $ modules sys
     for_ sys $ \c -> do
       p_ $ toHtml $ showCaseSize c
       table_ [class_ "case"] $ traverse_ row (rows c)

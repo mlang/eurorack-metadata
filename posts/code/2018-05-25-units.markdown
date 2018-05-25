@@ -1,0 +1,15 @@
+---
+title: Eurocard standard units for the units-defs haskell package
+tags: Haskell, Eurocard, units-defs
+---
+I just submitted a [pull request](https://github.com/goldfirere/units-defs/pull/16)
+for the [units-defs](https://github.com/goldfirere/units-defs) Haskell package to
+include `HorizontalPitch` and `RackUnit` as defined in the
+[eurocard](https://www.wikipedia.org/wiki/Eurocard_(printed_circuit_board)) standard
+in the `Data.Units.Eurocard` module.
+
+<!--more-->
+
+These two types originate from the source code for this website.
+Lets see if the maintainer of `units-defs` considers them useful.
+
