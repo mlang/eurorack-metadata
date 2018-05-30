@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts, QuasiQuotes, OverloadedStrings, TypeFamilies, TypeOperators #-}
 module Eurorack.Modules (
-  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name, height
+  Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name, height, description
 ) where
 import Control.Applicative ((<|>))
 import Control.Monad (guard, when, unless)
@@ -753,8 +753,33 @@ frontPanel VScale = ASCIILayoutDiagram [r|
 
   In
 |] []
-frontPanel Salt = UnknownPanel
-frontPanel SaltPlus = UnknownPanel
+frontPanel Salt = ASCIILayoutDiagram [r|
+   Poti1    Poti2
+   Poti3    Poti4
+
+   SW1       SW2
+
+T1I T2I CV1I CV2I AI
+
+T1O T2O CV3I CV4I AI
+
+        CV1O CV2O AO
+  USB
+        CV3O CV4O AO
+] []
+frontPanel SaltPlus = ASCIILayoutDiagram [r|
+   Poti1    Poti2
+   Poti3    Poti4
+
+   SW3       SW4
+
+CV5I CV6I T3I T4I
+
+CV7I CV8I T3O T4O
+
+CV5O CV5O
+            USB
+CV7O CV8O
 frontPanel DUSeq = UnknownPanel
 frontPanel A100_bl2 = Blank
 frontPanel A100_bl4 = Blank
