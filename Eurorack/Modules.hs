@@ -780,6 +780,7 @@ CV7I CV8I T3O T4O
 CV5O CV5O
             USB
 CV7O CV8O
+|] []
 frontPanel DUSeq = UnknownPanel
 frontPanel A100_bl2 = Blank
 frontPanel A100_bl4 = Blank
