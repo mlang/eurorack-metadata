@@ -4,7 +4,7 @@ import           Control.Applicative (Alternative(..))
 import           Control.Monad (mplus)
 import           Data.ByteString.Lazy (toStrict)
 import           Data.Foldable (for_)
-import           Data.List                       (intersperse)
+import           Data.List                       (intercalate, intersperse)
 import           Data.Maybe (catMaybes, fromMaybe)
 import           Data.Metrology ((#))
 import           Data.Metrology.SI (Length)
@@ -40,9 +40,10 @@ main = hakyllWith config $ do
   categories <- buildCategories "posts/**" (fromCapture "categories/*.html")
   manufacturers <- buildTagsWith (getTags' "manufacturers") "Eurorack/Modules/*" (fromCapture "Eurorack/Manufacturers/*.html")
   provides <- buildTagsWith (getTags' "provides") "Eurorack/Modules/*" (fromCapture "Eurorack/Features/*.html")
-  let moduleCtx = moduleTitleField "title"
+  let moduleCtx = moduleField "title" (pure . show . fullName)
                <> moduleNameField "name"
-               <> moduleSynopsisField "synopsis"
+               <> moduleField "description" (maybe empty (pure . show) . description)
+               <> moduleField "synopsis" (maybe empty (pure . show) . synopsis)
                <> moduleCurrentField "current"
                <> moduleLengthField "width" width
                <> moduleLengthField "height" height
@@ -196,24 +197,17 @@ config = defaultConfiguration {
 }
 
 maybeModule :: Item a -> Maybe Module
-maybeModule item = let ident = pack . takeBaseName . toFilePath $ itemIdentifier item in
-                   lookup ident $
-                   map (\mod -> (identifier mod, mod)) [minBound .. maxBound]
+maybeModule item = let ident = pack . takeBaseName . toFilePath $ itemIdentifier item
+                   in lookup ident $
+                      [(identifier mod, mod) | mod <- [minBound .. maxBound]]
 
 moduleField :: String -> (Module -> Compiler String) -> Context a
 moduleField key f = field key $ \item -> maybe
   (error $ "moduleField: Can't find module in " <> show (itemIdentifier item)) f $
   maybeModule item
 
-moduleTitleField :: String -> Context String
-moduleTitleField key = moduleField key (pure . show . fullName)
-
 moduleNameField :: String -> Context String
 moduleNameField key = moduleField key (pure . show . toHtml . name)
-
-moduleSynopsisField :: String -> Context String
-moduleSynopsisField key = moduleField key $ \mod ->
-  maybe empty (pure . show) (synopsis mod)
 
 moduleFrontPanelField :: String -> Context String
 moduleFrontPanelField key = moduleField key (pure . show . frontPanelHtml)
@@ -273,9 +267,8 @@ providesField :: String -> Tags -> Context a
 providesField = tagsFieldWith' (getTags' "provides") simpleRenderLink (mconcat . intersperse ", ")
 
 getTags' :: MonadMetadata m => String -> Identifier -> m [String]
-getTags' key identifier = do
-  metadata <- getMetadata identifier
-  pure $ fromMaybe [] $
-        (lookupStringList key metadata) `mplus`
-        (map trim . splitAll "," <$> lookupString key metadata)
+getTags' key = fmap f . getMetadata where
+  f metadata = fromMaybe [] $
+               (lookupStringList key metadata) `mplus`
+               (map trim . splitAll "," <$> lookupString key metadata)
 
