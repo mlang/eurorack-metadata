@@ -6,15 +6,12 @@ module Eurorack.Modules (
   Module(..), HorizontalPitch(..), RackUnit(..), Currents(..), synopsis, width, currents, fullName, Row, Case(..), System, identifier, frontPanel, panelHtml, systemHtml, hasSwitchPositionLabels, describeSwitches, frontPanelHtml, name, height, description
 ) where
 import Control.Applicative ((<|>))
-import Control.Monad (guard, when, unless)
-import Control.Monad.Extra (unlessM)
-import Data.Aeson.Types (typeMismatch)
+import Control.Monad (when, unless)
 import Data.Foldable (for_, maximum, sum, toList, traverse_)
 import Data.List (nub, (\\))
-import Data.Maybe (fromJust)
 import Data.Metrology ((%), (#), (|+|), (|*|), (:@), qSum)
 import Data.Metrology.Poly (showIn)
-import Data.Metrology.Show
+import Data.Metrology.Show ()
 import Data.Metrology.SI (Current, ElectricPotential, Power, Length)
 import Data.Semigroup (Semigroup((<>)))
 import Data.Text (Text, intercalate, pack, unpack)
@@ -24,7 +21,6 @@ import Data.Yaml
 import Eurorack.Units
 import GHC.Generics
 import Lucid hiding (for_)
-import System.Directory (doesDirectoryExist, createDirectory)
 import System.FilePath ((</>), (<.>))
 import Text.RawString.QQ (r)
 
@@ -766,7 +762,7 @@ T1O T2O CV3I CV4I AI
         CV1O CV2O AO
   USB
         CV3O CV4O AO
-] []
+|] []
 frontPanel SaltPlus = ASCIILayoutDiagram [r|
    Poti1    Poti2
    Poti3    Poti4
