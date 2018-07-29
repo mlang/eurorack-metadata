@@ -1,6 +1,6 @@
 ---
 manufacturers: Verbos Electronics
-provides: VCA, LPF
+provides: VCA, Lowpass, LPG, Vactrol
 schneidersladen: verbos-amplitude-tone.html
 ---
 
