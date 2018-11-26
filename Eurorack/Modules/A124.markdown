@@ -1,4 +1,7 @@
 ---
 manufacturers: Döpfer
+provides: BPF, HPF, LPF
+homepage: http://www.doepfer.de/a124.htm
+schneidersladen: http://www.doepfer.de/a124.htm
 ---
 

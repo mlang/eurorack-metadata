@@ -1,5 +1,7 @@
 ---
 manufacturers: Döpfer
 provides: Mixer, Stereo
+homepage: http://www.doepfer.de/A138s.htm
+schneidersladen: doepfer-a-138s.html
 ---
 

@@ -1,4 +1,7 @@
 ---
 manufacturers: Döpfer
+provides: Waveform Processor
+homepage: http://www.doepfer.de/a116.htm
+schneidersladen: doepfer-a-116-waveform-processor.html
 ---
 
