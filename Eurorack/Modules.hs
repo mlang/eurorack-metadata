@@ -199,8 +199,8 @@ manufacturer ATC = VerbosElectronics
 manufacturer PerformanceMixer = WMD
 
 description :: Module -> Maybe Text
-description TM = Nothing
-description Pluck = Nothing
+description TM = Just "Probabilistic random sequence generator"
+description Pluck = Just "Carplus-Strong plucked string voice"
 description Autobot = Just "X0x-style sequencer"
 description M303 = Just "TB-303 alike synthesizer voice"
 description Robokop = Just "X0x-style trigger sequencer"
