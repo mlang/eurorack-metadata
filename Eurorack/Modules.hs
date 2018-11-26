@@ -31,7 +31,8 @@ mA x = x % milli Ampere
 v :: Double -> ElectricPotential
 v = (% Volt)
 
-data Module = Autobot | M303 | Robokop
+data Module = TM | Pluck
+            | Autobot | M303 | Robokop
             | VScale
             | Salt | SaltPlus
             | DUSeq
@@ -99,7 +100,8 @@ name ATC = "Amplitude & Tone Controller"
 name PerformanceMixer = "Performance Mixer"
 name mod = identifier mod
 
-data Manufacturer = AcidLab
+data Manufacturer = TwoHP
+                  | AcidLab
                   | AJHSynth
                   | Bela
                   | DetroitUnderground
@@ -117,6 +119,8 @@ data Manufacturer = AcidLab
                   | WMD
                   deriving (Enum, Eq, Read, Show)
 
+manufacturer Pluck = TwoHP
+manufacturer TM = TwoHP
 manufacturer Autobot = AcidLab
 manufacturer M303 = AcidLab
 manufacturer Robokop = AcidLab
@@ -195,6 +199,8 @@ manufacturer ATC = VerbosElectronics
 manufacturer PerformanceMixer = WMD
 
 description :: Module -> Maybe Text
+description TM = Nothing
+description Pluck = Nothing
 description Autobot = Just "X0x-style sequencer"
 description M303 = Just "TB-303 alike synthesizer voice"
 description Robokop = Just "X0x-style trigger sequencer"
@@ -273,6 +279,8 @@ description ATC = Nothing
 description PerformanceMixer = Nothing
 
 synopsis :: Module -> Maybe (Html ())
+synopsis Pluck = Nothing
+synopsis TM = Nothing
 synopsis Autobot = Nothing
 synopsis M303 = Nothing
 synopsis Robokop = Nothing
@@ -372,6 +380,8 @@ isBlindPanel A100_bl42 = True
 isBlindPanel _ = False
 
 width :: Module -> Length
+width Pluck = 2 % HorizontalPitch
+width TM = 2 % HorizontalPitch
 width Autobot = 50 % HorizontalPitch
 width M303 = 16 % HorizontalPitch
 width Robokop = 50 % HorizontalPitch
@@ -463,6 +473,8 @@ instance Monoid Currents where
   mappend = (<>)
 
 currents :: Module -> Currents
+currents Pluck = Currents (mA 78) (mA 6) (mA 0)
+currents TM = Currents (mA 23) (mA 7) (mA 0)
 currents Autobot = Currents (mA 80) (mA 20) (mA 0)
 currents M303 = Currents (mA 60) (mA 20) (mA 0)
 currents Robokop = Currents (mA 80) (mA 20) (mA 0)
@@ -612,6 +624,27 @@ type Label = Text
 
 type Panel = FrontPanel (Label, FrontPanelElement)
 
+frontPanel Pluck = Tabular [
+    [Just ("Trig.", Socket In mini)]
+  , [Just ("Damp", Rotary)]
+  , [Just ("Damp", Socket In mini)]
+  , [Just ("Decay", Rotary)]
+  , [Just ("Decay", Socket In mini)]
+  , [Just ("V/Oct", Socket In mini)]
+  , [Just ("Pitch", Rotary)]
+  , [Just ("", LED)]
+  , [Just ("Out", Socket Out mini)]
+  ]
+frontPanel TM = Tabular [
+    [Just ("", LED)]
+  , [Just ("Trig", Socket In mini)]
+  , [Just ("Prob", Socket In mini)]
+  , [Just ("Prob", Rotary)]
+  , [Just ("Steps", Socket In mini)]
+  , [Just ("Steps", Rotary)]
+  , [Just ("Amp", Rotary)]
+  , [Just ("Out", Socket Out mini)]
+  ]
 frontPanel Autobot = ASCIILayoutDiagram [r|
                                                         CV Gate Accent
    Tempo    Prog     Mode        Slide
@@ -1524,6 +1557,7 @@ unbalanced = not . balanced
 manufacturerUrl Döpfer = Just "http://www.doepfer.de/"
 manufacturerUrl _ = Nothing
 
+manufacturerName TwoHP = pack "2HP"
 manufacturerName AcidLab = pack "AcidLab"
 manufacturerName AJHSynth = pack "AJH Synth"
 manufacturerName Bela = pack "Bela"
