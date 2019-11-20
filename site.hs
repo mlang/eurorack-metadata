@@ -194,6 +194,7 @@ verify (Case "A100LMS9" rows) = length rows == 3
 
 config = defaultConfiguration {
   deployCommand = "rsync -avcz _site/ mlang@blind.guru:blind.guru/modular/"
+, inMemoryCache = True
 }
 
 maybeModule :: Item a -> Maybe Module
