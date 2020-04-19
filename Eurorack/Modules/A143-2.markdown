@@ -1,5 +1,13 @@
 ---
 manufacturers: Döpfer
+homepage: http://www.doepfer.de/a1432.htm
 provides: ADSR Envelope Generator
+schneidersladen: doepfer-a-143-2-quad-adsr
 ---
+## Usage
+
+The Gate inputs of the units 2, 3 and 4 are normalled to the Gate input
+of unit 1, i.e. Gate input 1 is connected to the switching contacts of
+the Gate input sockets 2, 3 and 4. Thus one Gate signal applied to Gate
+input 1 can be used to trigger all four sub-modules simultaneously.
 
