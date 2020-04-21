@@ -1,8 +1,8 @@
-resolver: lts-14.15
+resolver: lts-15.9
 packages:
 - .
 extra-deps:
-- hakyll-4.13.0.1
-- units-2.4.1.1
+- hakyll-4.13.3.0
+- units-2.4.1.2
 - units-defs-2.0.1.1
 - units-parser-0.1.1.2
