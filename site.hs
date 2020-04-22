@@ -183,8 +183,8 @@ postCtx = teaserField "teaser" "content"
 
 rackCompiler :: Compiler (Item String)
 rackCompiler = getResourceLBS >>= traverse go where
-  go yaml = case decodeEither $ toStrict $ yaml :: Either String System of
-    Left e -> error e
+  go yaml = case decodeEither' $ toStrict yaml of
+    Left e -> error . show $ e
     Right v -> if all verify v
                then pure . show $ systemHtml v
                else error "illegal rack"
