@@ -23,7 +23,7 @@ dependencies:
 - text
 - raw-strings-qq
 - units >= 2.4 && <= 2.5
-- units-defs >= 2.0 && <= 2.1
+- units-defs >= 2.0 && <= 2.2
 - yaml
 
 executables:
