@@ -3,14 +3,10 @@ version:             0.1.0.0
 github:              "mlang/eurorack-metadata"
 license:             BSD3
 author:              "Mario Lang"
-maintainer:          "example@example.com"
-copyright:           "2018 Author name here"
+maintainer:          "mlang@blind.guru"
+copyright:           "2018-2020 Mario Lang"
 
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
-
-description:         Please see the README on Github at <https://github.com/githubuser/foobarion#readme>
+description:         Eurorack module metadata
 
 dependencies:
 - aeson
