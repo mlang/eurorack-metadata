@@ -1053,16 +1053,15 @@ G    R  m/l/h
   , ("Release", Rotary)
   , ("Out", Socket Out mini)
   ]
-frontPanel A143_9 = ASCIILayoutDiagram [r|
-CV1    Frq.
-CV2    CV2
-       Range
-0°     ,
-       ,
-90°
-180°
-270°
-|] []
+frontPanel A143_9 = Tabular [
+    [Just ("CV1", Socket In mini), Just ("Frq.", Rotary)]
+  , [Just ("CV2", Socket In mini), Just ("CV2", Rotary)]
+  , [Nothing, Just ("Range", Switch ["L", "M", "h"])]
+  , [Just ("0°", Socket Out mini), Just (":", LED)]
+  , [Just ("90°", Socket Out mini), Nothing]
+  , [Just ("180°", Socket Out mini), Nothing]
+  , [Just ("270°", Socket Out mini), Nothing]
+  ]
 frontPanel A145 = UnknownPanel
 frontPanel A146 = ASCIILayoutDiagram [r|
         Freq.
