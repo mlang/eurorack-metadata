@@ -54,9 +54,9 @@ data Module = TM | Pluck
             | BIA
             | Mixer | Outs
             | Evolution
-            | CP909 | Hats808 | One | RS808 | SD808
+            | BD808 | BD909 | CP909 | Hats808 | One | RS808 | SD808
             | CO | ATC
-            | PerformanceMixer
+            | Fracture | PerformanceMixer
             deriving (Bounded, Enum, Eq, Read, Show)
 
 identifier :: Module -> Text
@@ -189,6 +189,8 @@ manufacturer BIA = NoiseEngineering
 manufacturer Mixer = PittsburghModular
 manufacturer Outs = PittsburghModular
 manufacturer Evolution = RossumEletroMusic
+manufacturer BD808 = TipTopAudio
+manufacturer BD909 = TipTopAudio
 manufacturer CP909 = TipTopAudio
 manufacturer Hats808 = TipTopAudio
 manufacturer One = TipTopAudio
@@ -196,6 +198,7 @@ manufacturer RS808 = TipTopAudio
 manufacturer SD808 = TipTopAudio
 manufacturer CO = VerbosElectronics
 manufacturer ATC = VerbosElectronics
+manufacturer Fracture = WMD
 manufacturer PerformanceMixer = WMD
 
 description :: Module -> Maybe Text
@@ -269,13 +272,16 @@ description BIA = Just "Digital drum voice"
 description Mixer = Just "4 channel mixer / attenuators"
 description Outs = Just "Stereo Headphone Amp and Line Outs"
 description Evolution = Just "Variable character ladder filter"
-description CP909 = Nothing
-description Hats808 = Nothing
+description BD808 = Just "808 baddrum"
+description BD909 = Just "909 baddrum"
+description CP909 = Just "909 Clap"
+description Hats808 = Just "808 Hats"
 description One = Just "Mono WAV sample player"
-description RS808 = Nothing
-description SD808 = Nothing
+description RS808 = Just "808 Rimshot"
+description SD808 = Just "808 Snaredrum"
 description CO = Nothing
 description ATC = Nothing
+description Fracture = Just "Multi-Particle Percussion Synthesizer"
 description PerformanceMixer = Nothing
 
 synopsis :: Module -> Maybe (Html ())
@@ -358,6 +364,8 @@ synopsis BIA = Just $ p_ "A parameterized digital drum synthesizer. At its heart
 synopsis Mixer = Nothing
 synopsis Outs = Nothing
 synopsis Evolution = Nothing
+synopsis BD808 = Nothing
+synopsis BD909 = Nothing
 synopsis CP909 = Nothing
 synopsis Hats808 = Nothing
 synopsis One = Nothing
@@ -370,6 +378,7 @@ synopsis CO = Just $ do
   p_ "The oscillators are analog triangle cores with discrete transistor exponential converters. Each has inputs for linear and exponential FM. Both have 1 volt/octave trimmed CV inputs as well."
 synopsis ATC = Just $
   p_ $ toHtml $ pack "A totally discrete VCA with simultaneous exponential and linear CV input. It also contains an all discrete, Vactrol based VCF with diode limited resonance. It also has a discrete input gain stage. Careful balancing of the input gain and resonance control sets the mix of self oscillation and input signal, distorted on the VCA input if desired."
+synopsis Fracture = Nothing
 synopsis PerformanceMixer = Nothing
 
 isBlindPanel :: Module -> Bool
@@ -450,6 +459,8 @@ width BIA = 10 % HorizontalPitch
 width Mixer = 8 % HorizontalPitch
 width Outs = 6 % HorizontalPitch
 width Evolution = 16 % HorizontalPitch
+width BD808 = 4 % HorizontalPitch
+width BD909 = 8 % HorizontalPitch
 width CP909 = 4 % HorizontalPitch
 width Hats808 = 8 % HorizontalPitch
 width One = 4 % HorizontalPitch
@@ -457,6 +468,7 @@ width RS808 = 4 % HorizontalPitch
 width SD808 = 4 % HorizontalPitch
 width CO = 32 % HorizontalPitch
 width ATC = 16 % HorizontalPitch
+width Fracture = 8 % HorizontalPitch
 width PerformanceMixer = 40 % HorizontalPitch
 
 height :: Module -> Length
@@ -543,6 +555,8 @@ currents BIA = Currents (mA 80) (mA 5) (mA 90)
 currents Mixer = Currents (mA 30) (mA 30) (mA 0)
 currents Outs = Currents (mA 50) (mA 50) (mA 0)
 currents Evolution = Currents (mA 85) (mA 75) (mA 0)
+currents BD808 = Currents (mA 13) (mA 6) (mA 0)
+currents BD909 = Currents (mA 34) (mA 21) (mA 0)
 currents CP909 = Currents (mA 6) (mA 10) (mA 0)
 currents Hats808 = Currents (mA 30) (mA 25) (mA 0)
 currents One = Currents (mA 80) (mA 8) (mA 0)
@@ -550,6 +564,7 @@ currents RS808 = Currents (mA 14) (mA 13) (mA 0)
 currents SD808 = Currents (mA 18) (mA 16) (mA 0)
 currents CO = Currents (mA 70) (mA 50) (mA 0)
 currents ATC = Currents (mA 30) (mA 20) (mA 0)
+currents Fracture = Currents (mA 63) (mA 17) (mA 0)
 currents PerformanceMixer = Currents (mA 450) (mA 430) (mA 0)
 
 powerOfCurrents :: Currents -> Power
@@ -1089,7 +1104,7 @@ frontPanel A151 = Tabular [
   , [Just ("", LED), Just ("I/O2", Socket InOrOut mini)]
   , [Just ("", LED), Just ("I/O3", Socket InOrOut mini)]
   , [Just ("", LED), Just ("I/O4", Socket InOrOut mini)]
-  , [Nothing, Just ("Steps", Switch [])]
+  , [Nothing, Just ("Steps", Switch ["2", "3", "4"])]
   ]
 frontPanel A152 = ASCIILayoutDiagram [r|
           SWI/O  THOuts  Dig.Outs
@@ -1384,6 +1399,8 @@ FCV2    QCV2     GCV2     SCV2
 1V      QCV1     GCV1     SCV1
 In                        Out
 |] []
+frontPanel BD808 = UnknownPanel
+frontPanel BD909 = UnknownPanel
 frontPanel CP909 = UnknownPanel
 frontPanel Hats808 = Tabular [
     [Just ("Level", Rotary), Just ("Level", Rotary)]
@@ -1394,16 +1411,15 @@ frontPanel Hats808 = Tabular [
   , [Just ("GateIn", Socket In mini), Just ("GateIn", Socket In mini)]
   , [Just ("OHOut", Socket Out mini), Just ("CHOut", Socket Out mini)]
   ]
-frontPanel One = ASCIILayoutDiagram [r|
-Lev.
-Play
-
-File
-Pitch
-CV
-Gate-In
-Out
-|] []
+frontPanel One = Tabular [
+    [Just ("Lev.", Rotary), Nothing]
+  , [Just ("Play", Button), Just ("SD", SDSlot)]
+  , [Just ("File", Rotary), Nothing]
+  , [Just ("Pitch", Rotary), Nothing]
+  , [Just ("CV", Socket In mini), Nothing] 
+  , [Just ("Gate-In", Socket In mini), Nothing]
+  , [Just ("Out", Socket Out mini), Nothing]
+  ]
 frontPanel RS808 = UnknownPanel
 frontPanel SD808 = Tabular $ map (map Just) [
     [("Level", Rotary)]

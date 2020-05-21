@@ -1,0 +1,7 @@
+---
+manufacturers: TipTop Audio
+provides: Bassdrum
+homepage: http://tiptopaudio.com/909-2/#bd909
+schneidersladen: tiptop-audio-bd909
+---
+

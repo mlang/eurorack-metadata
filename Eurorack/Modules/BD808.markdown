@@ -1,0 +1,7 @@
+---
+manufacturers: TipTop Audio
+provides: Bassdrum
+homepage: http://tiptopaudio.com/808-2/#bd808
+schneidersladen: tiptop-audio-bd808
+---
+
