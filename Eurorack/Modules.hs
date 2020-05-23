@@ -1031,7 +1031,14 @@ frontPanel A138a = Tabular [
   ]
 frontPanel A138b = frontPanel A138a
 frontPanel A138m = UnknownPanel
-frontPanel A138s = UnknownPanel
+frontPanel A138s = Tabular [
+    [Just ("Level", Rotary), Nothing, Just ("Pan", Rotary)]
+  , [Just ("Level", Rotary), Nothing, Just ("Pan", Rotary)]
+  , [Just ("Level", Rotary), Nothing, Just ("Pan", Rotary)]
+  , [Just ("Level", Rotary), Nothing, Just ("Pan", Rotary)]
+  , [Just ("In1", Socket In mini), Just ("In2", Socket In mini), Just ("OutL", Socket Out mini)]
+  , [Just ("In3", Socket In mini), Just ("In4", Socket In mini), Just ("OutR", Socket Out mini)]
+  ]
 frontPanel A140 = Tabular [
     [Just ("Gate", Socket In mini), Just ("A", Rotary)]
   , [Just ("Retrig.", Socket In mini), Just ("D", Rotary)]
@@ -1399,9 +1406,33 @@ FCV2    QCV2     GCV2     SCV2
 1V      QCV1     GCV1     SCV1
 In                        Out
 |] []
-frontPanel BD808 = UnknownPanel
-frontPanel BD909 = UnknownPanel
-frontPanel CP909 = UnknownPanel
+frontPanel BD808 = Tabular [
+    [Just ("Level", Rotary)]
+  , [Just ("Tone", Rotary)]
+  , [Just ("Decay", Rotary)]
+  , [Just ("Accent", Rotary)]
+  , [Just ("Accent-In", Socket In mini)]
+  , [Just ("Gate-In", Socket In mini)]
+  , [Just ("BDOut", Socket Out mini)]
+  ]
+frontPanel BD909 = Tabular [
+    [Just ("Overload", Rotary), Just ("Level", Rotary)]
+  , [Just ("Attack", Rotary), Just ("Decay", Rotary)]
+  , [Just ("TuneAttack", Rotary), Just ("ToneDecay", Rotary)]
+  , [Just ("OscTune", Rotary), Just ("Accent", Rotary)]
+  , [Just ("CV Tune", Rotary), Just ("Accent-In", Socket In mini)]
+  , [Just ("CV Tune", Socket In mini), Just ("Gate-In", Socket In mini)]
+  , [Just ("CV Overload", Socket In mini), Just ("BDOut", Socket Out mini)]
+  ]
+frontPanel CP909 = Tabular [
+    [Just ("Level", Rotary)]
+  , [Just ("Trash", Rotary)]
+  , [Nothing]
+  , [Just ("Accent", Rotary)]
+  , [Just ("Accent-In", Socket In mini)]
+  , [Just ("Gate-In", Socket In mini)]
+  , [Just ("ClapOut", Socket Out mini)]
+  ]
 frontPanel Hats808 = Tabular [
     [Just ("Level", Rotary), Just ("Level", Rotary)]
   , [Just ("Q", Rotary), Just ("QCV", Socket In mini)]
@@ -1420,7 +1451,16 @@ frontPanel One = Tabular [
   , [Just ("Gate-In", Socket In mini), Nothing]
   , [Just ("Out", Socket Out mini), Nothing]
   ]
-frontPanel RS808 = UnknownPanel
+frontPanel RS808 = Tabular [
+    [Nothing, Just ("Level", Rotary), Nothing]
+  , [Just ("S1", Switch []), Nothing, Just ("S2", Switch [])]
+  , [Nothing, Just ("Snap", Rotary), Nothing]
+  , [Nothing, Just ("Pitch", Rotary), Nothing]
+  , [Nothing, Just ("Accent", Rotary), Nothing]
+  , [Nothing, Just ("Accent-In", Socket In mini), Nothing]
+  , [Nothing, Just ("Gate-In", Socket In mini), Nothing]
+  , [Nothing, Just ("RS/ClOut", Socket Out mini), Nothing]
+  ]
 frontPanel SD808 = Tabular $ map (map Just) [
     [("Level", Rotary)]
   , [("Tone", Rotary)]
@@ -1458,6 +1498,38 @@ In  FreqCV  ExpCV  LinCV  Out
   , ("LinCV", Socket In mini)
   , ("Out", Socket Out mini)
   ]
+frontPanel Fracture = ASCIILayoutDiagram [r|
+    Surface  Trig  Spread
+
+    Decay          Freq
+     Tail           Punch
+    Density        Reverb
+
+  Spread  Freq  Density  Reverb
+  Surface Decay Pitch    OutR
+  Trigger Tick  Inf      OutL
+|] [ ("Surface", Rotary)
+   , ("Trig", Button)
+   , ("Spread", Rotary)
+   , ("Decay", Rotary)
+   , ("Freq", Rotary)
+   , ("Tail", Switch ["", "", ""])
+   , ("Punch", Switch ["", "", ""])
+   , ("Density", Rotary)
+   , ("Reverb", Rotary)
+   , ("Spread", Socket In mini)
+   , ("Freq", Socket In mini)
+   , ("Density", Socket In mini)
+   , ("Reverb", Socket In mini)
+   , ("Surface", Socket In mini)
+   , ("Decay", Socket In mini)
+   , ("Pitch", Socket In mini)
+   , ("Trigger", Socket In mini)
+   , ("Tick", Socket In mini)
+   , ("Inf", Socket In mini)
+   , ("OutL", Socket Out mini)
+   , ("OutR", Socket Out mini)
+   ]
 frontPanel PerformanceMixer = UnknownPanel
 
 type Row = [Module]
