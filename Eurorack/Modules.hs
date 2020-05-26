@@ -48,6 +48,7 @@ data Module = TM | Pluck
             | A180_1 | A180_2 | A180_3 | A182_1 | A184_1 | A185_2
             | A190_4
             | DLD | QCD | QCDExp
+            | UnityMixer
             | SubMix
             | DPO | ErbeVerb | Maths | STO
             | Branches | Grids
@@ -56,7 +57,7 @@ data Module = TM | Pluck
             | Evolution
             | BD808 | BD909 | CP909 | Hats808 | One | RS808 | SD808
             | CO | ATC
-            | Fracture | PerformanceMixer
+            | Compressor | Fracture | PerformanceMixer
             deriving (Bounded, Enum, Eq, Read, Show)
 
 identifier :: Module -> Text
@@ -107,6 +108,7 @@ data Manufacturer = TwoHP
                   | DetroitUnderground
                   | Döpfer
                   | FourMS
+                  | Intellijel
                   | LowGainElectronics
                   | MakeNoise
                   | MutableInstruments
@@ -178,6 +180,7 @@ manufacturer A190_4 = Döpfer
 manufacturer DLD = FourMS
 manufacturer QCD = FourMS
 manufacturer QCDExp = FourMS
+manufacturer UnityMixer = Intellijel
 manufacturer SubMix = LowGainElectronics
 manufacturer DPO = MakeNoise
 manufacturer ErbeVerb = MakeNoise
@@ -198,6 +201,7 @@ manufacturer RS808 = TipTopAudio
 manufacturer SD808 = TipTopAudio
 manufacturer CO = VerbosElectronics
 manufacturer ATC = VerbosElectronics
+manufacturer Compressor = WMD
 manufacturer Fracture = WMD
 manufacturer PerformanceMixer = WMD
 
@@ -261,6 +265,7 @@ description A190_4 = Just "Midi-CV/Gate/Sync-Interface"
 description DLD = Nothing
 description QCD = Nothing
 description QCDExp = Nothing
+description UnityMixer = Nothing
 description SubMix = Just "12 channel mixer"
 description DPO = Just "Dual Prismatic Oscillator"
 description ErbeVerb = Nothing
@@ -281,6 +286,7 @@ description RS808 = Just "808 Rimshot"
 description SD808 = Just "808 Snaredrum"
 description CO = Nothing
 description ATC = Nothing
+description Compressor = Nothing
 description Fracture = Just "Multi-Particle Percussion Synthesizer"
 description PerformanceMixer = Nothing
 
@@ -353,6 +359,7 @@ synopsis A190_4 = Nothing
 synopsis DLD = Nothing
 synopsis QCD = Nothing
 synopsis QCDExp = Nothing
+synopsis UnityMixer = Nothing
 synopsis SubMix = Nothing
 synopsis DPO = Nothing
 synopsis ErbeVerb = Nothing
@@ -378,6 +385,7 @@ synopsis CO = Just $ do
   p_ "The oscillators are analog triangle cores with discrete transistor exponential converters. Each has inputs for linear and exponential FM. Both have 1 volt/octave trimmed CV inputs as well."
 synopsis ATC = Just $
   p_ $ toHtml $ pack "A totally discrete VCA with simultaneous exponential and linear CV input. It also contains an all discrete, Vactrol based VCF with diode limited resonance. It also has a discrete input gain stage. Careful balancing of the input gain and resonance control sets the mix of self oscillation and input signal, distorted on the VCA input if desired."
+synopsis Compressor = Nothing
 synopsis Fracture = Nothing
 synopsis PerformanceMixer = Nothing
 
@@ -448,6 +456,7 @@ width A190_4 = 10 % HorizontalPitch
 width DLD = 20 % HorizontalPitch
 width QCD = 10 % HorizontalPitch
 width QCDExp = 12 % HorizontalPitch
+width UnityMixer = 2 % HorizontalPitch
 width SubMix = 28 % HorizontalPitch
 width DPO = 28 % HorizontalPitch
 width ErbeVerb = 20 % HorizontalPitch
@@ -468,6 +477,7 @@ width RS808 = 4 % HorizontalPitch
 width SD808 = 4 % HorizontalPitch
 width CO = 32 % HorizontalPitch
 width ATC = 16 % HorizontalPitch
+width Compressor = 12 % HorizontalPitch
 width Fracture = 8 % HorizontalPitch
 width PerformanceMixer = 40 % HorizontalPitch
 
@@ -544,6 +554,7 @@ currents A190_4 = Currents (mA 200) (mA 40) (mA 0)
 currents DLD = Currents (mA 188) (mA 48) (mA 0)
 currents QCD = Currents (mA 48) (mA 40) (mA 41)
 currents QCDExp = Currents (mA 44) (mA 30) (mA 0)
+currents UnityMixer = Currents (mA 11) (mA 14) (mA 0)
 currents SubMix = Currents (mA 15) (mA 15) (mA 0)
 currents DPO = Currents (mA 70) (mA 70) (mA 0)
 currents ErbeVerb = Currents (mA 148) (mA 15) (mA 0)
@@ -564,6 +575,7 @@ currents RS808 = Currents (mA 14) (mA 13) (mA 0)
 currents SD808 = Currents (mA 18) (mA 16) (mA 0)
 currents CO = Currents (mA 70) (mA 50) (mA 0)
 currents ATC = Currents (mA 30) (mA 20) (mA 0)
+currents Compressor = Currents (mA 52) (mA 40) (mA 0)
 currents Fracture = Currents (mA 63) (mA 17) (mA 0)
 currents PerformanceMixer = Currents (mA 450) (mA 430) (mA 0)
 
@@ -1498,6 +1510,7 @@ In  FreqCV  ExpCV  LinCV  Out
   , ("LinCV", Socket In mini)
   , ("Out", Socket Out mini)
   ]
+frontPanel Compressor = UnknownPanel
 frontPanel Fracture = ASCIILayoutDiagram [r|
     Surface  Trig  Spread
 
