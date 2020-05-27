@@ -108,7 +108,7 @@ data Manufacturer = TwoHP
                   | DetroitUnderground
                   | Döpfer
                   | FourMS
-                  | Intellijel
+                  | IntellijelDesigns
                   | LowGainElectronics
                   | MakeNoise
                   | MutableInstruments
@@ -180,7 +180,7 @@ manufacturer A190_4 = Döpfer
 manufacturer DLD = FourMS
 manufacturer QCD = FourMS
 manufacturer QCDExp = FourMS
-manufacturer UnityMixer = Intellijel
+manufacturer UnityMixer = IntellijelDesigns
 manufacturer SubMix = LowGainElectronics
 manufacturer DPO = MakeNoise
 manufacturer ErbeVerb = MakeNoise
@@ -1298,6 +1298,7 @@ Inv                    Div/Mult-Att
   , ("Mode", Switch ["?", "?", "?"])
   , ("Div/Mult-Att", Rotary)
   ]
+frontPanel UnityMixer = UnknownPanel
 frontPanel SubMix = let row c = map (\n -> Just (c <> pack (show n), Rotary)) [1..3]
                              <> [Nothing]
                              <> map (\n -> Just (c <> pack (show n), Socket In mini)) [1..3]
@@ -1664,6 +1665,7 @@ manufacturerName Bela = pack "Bela"
 manufacturerName DetroitUnderground = pack "Detroit Underground"
 manufacturerName Döpfer = pack "Döpfer"
 manufacturerName FourMS = pack "4ms"
+manufacturerName IntellijelDesigns = pack "Intellijel Designs"
 manufacturerName LowGainElectronics = pack "Low-Gain Electronics"
 manufacturerName MakeNoise = pack "Make Noise"
 manufacturerName MutableInstruments = pack "Mutable Instruments"
