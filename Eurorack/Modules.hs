@@ -1511,7 +1511,23 @@ In  FreqCV  ExpCV  LinCV  Out
   , ("LinCV", Socket In mini)
   , ("Out", Socket Out mini)
   ]
-frontPanel Compressor = UnknownPanel
+frontPanel Compressor = ASCIILayoutDiagram [r|
+ .  .  .  .  .        Link (M/S)
+
+  Input-Gain  Input-Sat  Threshold
+  Ratio       Attack     Release
+  MakeUpGain  OutputSat  Mix
+
+  In  Out  Knee  Det  A/R  Ratio
+
+  Threshold  Attack  Release  MakeupGain
+  SignalIn   SideChain EnvOut   SignalOut
+|] [("In", Switch ["Sat", "Clean"])
+   ,("Out", Switch ["Sat", "Clean"])
+   ,("Knee", Switch ["Hard", "Soft"])
+   ,("Det", Switch ["Peak", "Adapt", "RMS"])
+   ,("A/R", Switch ["Man", "Auto"])
+   ,("Ratio", Switch ["Xpand", "Comp"])]
 frontPanel Fracture = ASCIILayoutDiagram [r|
     Surface  Trig  Spread
 
